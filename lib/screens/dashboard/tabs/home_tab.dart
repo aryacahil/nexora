@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'forum/channel_list.dart';
 import 'member_grid.dart';
 import 'game/russian_roulette.dart';
+import 'game/uno/uno_page.dart';
 import '../../../core/colors.dart';
 import '../../../services/user_service.dart';
 import '../../feedback_screen.dart';
@@ -536,106 +537,149 @@ class HomeTabState extends State<HomeTab> {
     );
   }
 
+  // ═══════════════════════════════════════════════════════════════
+  // GAME VIEW — tambahkan game baru di sini
+  // ═══════════════════════════════════════════════════════════════
+
   Widget _buildGameView() {
-  return Column(
-    children: [
-      // Info
-      Container(
-  padding: const EdgeInsets.all(20),
-  decoration: BoxDecoration(
-    gradient: const LinearGradient(
-      colors: [Color(0xFF7C0000), Color(0xFFDC2626)],
-    ),
-    borderRadius: BorderRadius.circular(20),
-  ),
-  child: Row(
-    children: [
-      Container(
-        width: 56,
-        height: 56,
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.15),
-          shape: BoxShape.circle,
-        ),
-        child: const Icon(
-          Icons.gps_fixed,
-          color: Colors.white,
-          size: 30,
-        ),
-      ),
-      const SizedBox(width: 16),
-      Expanded(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'RUSSIAN ROULETTE',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 1,
-              ),
+    return Column(
+      children: [
+        // ── Russian Roulette ──────────────────────────────
+        _buildGameCard(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF7C0000), Color(0xFFDC2626)],
+          ),
+          glowColor: Colors.red,
+          icon: Icons.gps_fixed,
+          title: 'RUSSIAN ROULETTE',
+          subtitle: 'Uji nyalimu bersama teman-teman!',
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const RussianRoulettePage(),
             ),
-            const SizedBox(height: 6),
-            Row(
-              children: [
-                Icon(Icons.people,
-                    color: Colors.white70, size: 12),
-                const SizedBox(width: 4),
-                const Text(
-                  'Uji nyalimu bersama teman-teman!',
-                  style: TextStyle(
-                      color: Colors.white70, fontSize: 12),
-                ),
-              ],
+          ),
+        ),
+
+        const SizedBox(height: 16),
+
+        // ── UNO ───────────────────────────────────────────
+        _buildGameCard(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF7C0000), Color(0xFFE53935)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          glowColor: Colors.red,
+          icon: Icons.style,
+          title: 'UNO',
+          subtitle: '2–6 pemain • Kartu 7-Swap & 0-Rotate • Timer 20 detik',
+          badge: 'NEW',
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const UnoPage(),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Card game — tap langsung masuk ke game
+  Widget _buildGameCard({
+    required LinearGradient gradient,
+    required Color glowColor,
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    String? badge,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: gradient,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: glowColor.withValues(alpha: 0.25),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
             ),
           ],
         ),
-      ),
-    ],
-  ),
-      ),
-      const SizedBox(height: 16),
-      GestureDetector(
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => const RussianRoulettePage(),
-          ),
-        ),
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          decoration: BoxDecoration(
-            color: AppColors.card,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-                color: Colors.red.withValues(alpha: 0.4)),
-          ),
-          alignment: Alignment.center,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.sports_esports,
-                  color: Colors.red.shade400, size: 20),
-              const SizedBox(width: 10),
-              Text(
-                'MAIN SEKARANG',
-                style: TextStyle(
-                  color: Colors.red.shade400,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 2,
-                ),
+        child: Row(
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
               ),
-            ],
-          ),
+              child: Icon(icon, color: Colors.white, size: 30),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          title,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ),
+                      if (badge != null) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.amber,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            badge,
+                            style: const TextStyle(
+                              fontSize: 8,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.black,
+                              letterSpacing: 1,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                        color: Colors.white70, fontSize: 11),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(Icons.arrow_forward_ios,
+                color: Colors.white.withValues(alpha: 0.5), size: 16),
+          ],
         ),
       ),
-    ],
-  );
-}
-
+    );
+  }
   Widget _buildDonasiView() {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
@@ -736,8 +780,6 @@ class HomeTabState extends State<HomeTab> {
                                 height: 1.5),
                           ),
                         ],
-
-                        // Info rekening
                         if (noRek.isNotEmpty || bank.isNotEmpty) ...[
                           const SizedBox(height: 16),
                           Container(
@@ -746,8 +788,7 @@ class HomeTabState extends State<HomeTab> {
                               color: Colors.green.withValues(alpha: 0.08),
                               borderRadius: BorderRadius.circular(14),
                               border: Border.all(
-                                  color:
-                                      Colors.green.withValues(alpha: 0.3)),
+                                  color: Colors.green.withValues(alpha: 0.3)),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -779,7 +820,6 @@ class HomeTabState extends State<HomeTab> {
                             ),
                           ),
                         ],
-
                         if (link.isNotEmpty) ...[
                           const SizedBox(height: 12),
                           GestureDetector(
@@ -792,8 +832,8 @@ class HomeTabState extends State<HomeTab> {
                             },
                             child: Container(
                               width: double.infinity,
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 12),
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 12),
                               decoration: BoxDecoration(
                                 gradient: const LinearGradient(
                                   colors: [
@@ -804,16 +844,15 @@ class HomeTabState extends State<HomeTab> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               alignment: Alignment.center,
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.center,
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  const Icon(Icons.open_in_new,
+                                  Icon(Icons.open_in_new,
                                       size: 16, color: Colors.white),
-                                  const SizedBox(width: 8),
+                                  SizedBox(width: 8),
                                   Text(
                                     'Donasi Sekarang',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 13,
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,

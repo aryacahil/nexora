@@ -64,7 +64,6 @@ class GameService {
     final players = List<Map<String, dynamic>>.from(data['players']);
     if (players.length < 2) throw Exception('Minimal 2 pemain.');
 
-    // ✅ Buat list dulu, baru masukkan ke update
     final gameLog = <String>['MULAI: Game dimulai! Selamat bermain...'];
 
     await _db.collection('game_rooms').doc(code).update({
@@ -147,20 +146,54 @@ class GameService {
   }
 
   // Keluar dari room
+  // Jika game sedang berlangsung dan semua pemain keluar → hapus room (otomatis selesai)
   Future<void> leaveRoom(String code) async {
     final doc = await _db.collection('game_rooms').doc(code).get();
     if (!doc.exists) return;
+
     final data = doc.data()!;
+    final status = data['status'] ?? 'waiting';
     final players = List<Map<String, dynamic>>.from(data['players']);
     players.removeWhere((p) => p['uid'] == uid);
 
+    // Jika tidak ada pemain tersisa → hapus room
     if (players.isEmpty) {
       await _db.collection('game_rooms').doc(code).delete();
-    } else {
-      if (!players.any((p) => p['isHost'] == true)) {
-        players[0]['isHost'] = true;
+      return;
+    }
+
+    // Jika game sedang berlangsung dan hanya tersisa 1 pemain → langsung selesai
+    if (status == 'playing') {
+      final alivePlayers = players.where((p) => p['isAlive'] == true).toList();
+      if (alivePlayers.length <= 1) {
+        final winner = alivePlayers.isNotEmpty ? alivePlayers.first['name'] : '-';
+        // Pastikan ada host baru
+        if (!players.any((p) => p['isHost'] == true)) {
+          players[0]['isHost'] = true;
+        }
+        await _db.collection('game_rooms').doc(code).update({
+          'players': players,
+          'status': 'finished',
+          'winner': winner,
+          'gameLog': FieldValue.arrayUnion(['MENANG: $winner memenangkan game! (pemain lain keluar)']),
+        });
+        return;
       }
-      await _db.collection('game_rooms').doc(code).update({'players': players});
+    }
+
+    // Kondisi normal: assign host baru jika host yang keluar
+    if (!players.any((p) => p['isHost'] == true)) {
+      players[0]['isHost'] = true;
+    }
+    await _db.collection('game_rooms').doc(code).update({'players': players});
+  }
+
+  // Force finish room jika semua pemain keluar saat game berlangsung
+  Future<void> forceFinishRoom(String code) async {
+    try {
+      await _db.collection('game_rooms').doc(code).delete();
+    } catch (e) {
+      // ignore
     }
   }
 
@@ -174,7 +207,6 @@ class GameService {
       p['isAlive'] = true;
     }
 
-    // ✅ Buat list dulu, baru masukkan ke update
     final gameLog = <String>['MULAI: Game dimulai ulang!'];
 
     await _db.collection('game_rooms').doc(code).update({

@@ -620,7 +620,7 @@ class _RoomScreenState extends State<_RoomScreen> with TickerProviderStateMixin 
   void initState() {
     super.initState();
 
-    // Recoil - pistol mundur saat ditembak/diklik
+    // Recoil
     _recoilController = AnimationController(
         duration: const Duration(milliseconds: 350), vsync: this);
     _recoilAnimation = TweenSequence([
@@ -634,7 +634,7 @@ class _RoomScreenState extends State<_RoomScreen> with TickerProviderStateMixin 
           weight: 75),
     ]).animate(_recoilController);
 
-    // Pulse saat giliran
+    // Pulse
     _pulseController = AnimationController(
         duration: const Duration(milliseconds: 900), vsync: this)
       ..repeat(reverse: true);
@@ -647,7 +647,7 @@ class _RoomScreenState extends State<_RoomScreen> with TickerProviderStateMixin 
     _flashAnimation = Tween<double>(begin: 1, end: 0).animate(
         CurvedAnimation(parent: _flashController, curve: Curves.easeOut));
 
-    // Glow pistol saat giliran
+    // Glow pistol
     _glowController = AnimationController(
         duration: const Duration(milliseconds: 1200), vsync: this)
       ..repeat(reverse: true);
@@ -688,14 +688,12 @@ class _RoomScreenState extends State<_RoomScreen> with TickerProviderStateMixin 
     if (_isShooting) return;
     setState(() => _isShooting = true);
 
-    // Cek hasil sebelum animasi
     final doc = await widget.gameService.roomStream(widget.roomCode).first;
     final data = doc.data() as Map<String, dynamic>;
     final triggerCount = (data['triggerCount'] as int) + 1;
     final bulletPosition = data['bulletPosition'] as int;
     final isShot = triggerCount == bulletPosition;
 
-    // Putar suara spin dulu
     await _playSound('spin');
     await Future.delayed(const Duration(milliseconds: 700));
 
@@ -730,6 +728,7 @@ class _RoomScreenState extends State<_RoomScreen> with TickerProviderStateMixin 
     return StreamBuilder<DocumentSnapshot>(
       stream: widget.gameService.roomStream(widget.roomCode),
       builder: (context, snapshot) {
+        // ── Room tidak ada / sudah dihapus ──
         if (!snapshot.hasData || !snapshot.data!.exists) {
           return Scaffold(
             backgroundColor: AppColors.bg,
@@ -739,8 +738,10 @@ class _RoomScreenState extends State<_RoomScreen> with TickerProviderStateMixin 
                 children: [
                   Icon(Icons.meeting_room_outlined, size: 56, color: AppColors.textDim),
                   const SizedBox(height: 16),
-                  Text('Room tidak ditemukan.',
+                  Text('Room tidak ditemukan atau sudah ditutup.',
+                      textAlign: TextAlign.center,
                       style: TextStyle(color: AppColors.textDim)),
+                  const SizedBox(height: 16),
                   TextButton(
                       onPressed: widget.onLeave,
                       child: Text('Kembali',
@@ -755,9 +756,6 @@ class _RoomScreenState extends State<_RoomScreen> with TickerProviderStateMixin 
         final status = data['status'] ?? 'waiting';
         final players = List<Map<String, dynamic>>.from(data['players'] ?? []);
         final currentTurn = data['currentTurn'] ?? 0;
-
-        // ✅ FIX: pakai 'gameLog'
-        final gameLog = List<String>.from(data['gameLog'] ?? []);
         final winner = data['winner'] ?? '';
 
         final alivePlayers = players.where((p) => p['isAlive'] == true).toList();
@@ -772,6 +770,17 @@ class _RoomScreenState extends State<_RoomScreen> with TickerProviderStateMixin 
             alivePlayers[currentTurn % alivePlayers.length]['uid'] ==
                 widget.myUid &&
             isAlive;
+
+        // Ambil 1 entri log terakhir dari Firestore (realtime, semua pemain lihat sama)
+        final gameLog = List<String>.from(data['gameLog'] ?? []);
+        final latestLog = gameLog.isNotEmpty ? gameLog.last : '';
+
+        // ── Cek jika game sedang berlangsung tapi semua pemain keluar ──
+        // (players list kosong saat status masih 'playing')
+        if (status == 'playing' && players.isEmpty) {
+          // Otomatis finish — hapus room
+          widget.gameService.forceFinishRoom(widget.roomCode);
+        }
 
         if (status == 'finished') _playSound('win');
 
@@ -906,7 +915,7 @@ class _RoomScreenState extends State<_RoomScreen> with TickerProviderStateMixin 
                     const SizedBox(height: 20),
                   ],
 
-                  // ── Pistol Animasi ────────────────────────
+                  // ── Pistol Animasi + Log ──────────────────
                   if (status == 'playing') ...[
                     const SizedBox(height: 16),
                     Container(
@@ -1016,6 +1025,12 @@ class _RoomScreenState extends State<_RoomScreen> with TickerProviderStateMixin 
                               ),
                             ),
                           ),
+
+                          // ── Log Display (1 entri terakhir, realtime dari Firestore) ──
+                          if (latestLog.isNotEmpty) ...[
+                            const SizedBox(height: 16),
+                            _buildLatestLog(latestLog),
+                          ],
                         ],
                       ),
                     ),
@@ -1314,83 +1329,6 @@ class _RoomScreenState extends State<_RoomScreen> with TickerProviderStateMixin 
                       ),
                     ),
                   ],
-
-                  // ── Log Game ──────────────────────────────
-                  if (gameLog.isNotEmpty) ...[
-                    const SizedBox(height: 24),
-                    Text('LOG GAME',
-                        style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 2,
-                            color: AppColors.textDim)),
-                    const SizedBox(height: 10),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                          color: AppColors.card,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: AppColors.border)),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: gameLog.reversed.take(10).map((entry) {
-                          IconData logIcon;
-                          Color logColor;
-                          String displayText;
-
-                          if (entry.startsWith('MATI:')) {
-                            logIcon = Icons.close_rounded;
-                            logColor = Colors.red;
-                            displayText = entry.substring(5).trim();
-                          } else if (entry.startsWith('SELAMAT:')) {
-                            logIcon = Icons.check_circle_outline;
-                            logColor = Colors.green;
-                            displayText = entry.substring(8).trim();
-                          } else if (entry.startsWith('MENANG:')) {
-                            logIcon = Icons.emoji_events;
-                            logColor = Colors.amber;
-                            displayText = entry.substring(7).trim();
-                          } else if (entry.startsWith('RESET:')) {
-                            logIcon = Icons.refresh;
-                            logColor = Colors.blue;
-                            displayText = entry.substring(6).trim();
-                          } else if (entry.startsWith('MULAI:')) {
-                            logIcon = Icons.play_circle_outline;
-                            logColor = AppColors.primary;
-                            displayText = entry.substring(6).trim();
-                          } else {
-                            logIcon = Icons.info_outline;
-                            logColor = AppColors.textDim;
-                            displayText = entry;
-                          }
-
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 10),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(5),
-                                  decoration: BoxDecoration(
-                                      color: logColor.withValues(alpha: 0.13),
-                                      borderRadius: BorderRadius.circular(7)),
-                                  child: Icon(logIcon, size: 13, color: logColor),
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Text(displayText,
-                                      style: TextStyle(
-                                          fontSize: 12,
-                                          color: AppColors.textMain,
-                                          height: 1.5)),
-                                ),
-                              ],
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                  ],
                 ],
               ),
 
@@ -1411,6 +1349,68 @@ class _RoomScreenState extends State<_RoomScreen> with TickerProviderStateMixin 
           ),
         );
       },
+    );
+  }
+
+  Widget _buildLatestLog(String text) {
+    IconData logIcon;
+    Color logColor;
+    String displayText;
+
+    if (text.startsWith('MATI:')) {
+      logIcon = Icons.close_rounded;
+      logColor = Colors.red;
+      displayText = text.substring(5).trim();
+    } else if (text.startsWith('SELAMAT:')) {
+      logIcon = Icons.check_circle_outline;
+      logColor = Colors.greenAccent;
+      displayText = text.substring(8).trim();
+    } else if (text.startsWith('MENANG:')) {
+      logIcon = Icons.emoji_events;
+      logColor = Colors.amber;
+      displayText = text.substring(7).trim();
+    } else if (text.startsWith('RESET:')) {
+      logIcon = Icons.refresh;
+      logColor = Colors.blueAccent;
+      displayText = text.substring(6).trim();
+    } else if (text.startsWith('MULAI:')) {
+      logIcon = Icons.play_circle_outline;
+      logColor = Colors.white54;
+      displayText = text.substring(6).trim();
+    } else {
+      logIcon = Icons.info_outline;
+      logColor = Colors.white54;
+      displayText = text;
+    }
+
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 400),
+      child: Container(
+        key: ValueKey(text),
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.45),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: logColor.withValues(alpha: 0.25)),
+        ),
+        child: Row(
+          children: [
+            Icon(logIcon, size: 14, color: logColor),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                displayText,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.white.withValues(alpha: 0.85),
+                  height: 1.4,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
