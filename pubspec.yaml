@@ -22,6 +22,7 @@ dependencies:
   permission_handler: ^11.3.1
   http: ^1.2.2
   url_launcher: ^6.2.5
+  audioplayers: ^6.0.0
 
 dev_dependencies:
   flutter_test:
@@ -32,3 +33,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/icons/void.png
+    - assets/sounds/spin.wav
+    - assets/sounds/click.wav
+    - assets/sounds/gunshot.wav
+    - assets/sounds/win.wav

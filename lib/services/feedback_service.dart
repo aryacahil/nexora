@@ -11,6 +11,8 @@ class FeedbackService {
     required String message,
     required String senderName,
     bool isAnonymous = false,
+    String type = 'saran',
+    String? imageBase64,
   }) async {
     await _db.collection('feedbacks').add({
       'message': message,
@@ -18,6 +20,8 @@ class FeedbackService {
       'senderUid': isAnonymous ? '' : uid,
       'isAnonymous': isAnonymous,
       'isRead': false,
+      'type': type,
+      'imageBase64': imageBase64 ?? '',
       'createdAt': FieldValue.serverTimestamp(),
     });
   }

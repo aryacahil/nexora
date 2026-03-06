@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'forum/channel_list.dart';
 import 'member_grid.dart';
+import 'game/russian_roulette.dart';
 import '../../../core/colors.dart';
 import '../../../services/user_service.dart';
 import '../../feedback_screen.dart';
@@ -25,10 +26,25 @@ class HomeTabState extends State<HomeTab> {
   @override
   Widget build(BuildContext context) {
     if (subView == 'forum') {
-      return ChannelList(onBack: () => setState(() => subView = 'main'));
+      return PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop) setState(() => subView = 'main');
+        },
+        child: ChannelList(onBack: () => setState(() => subView = 'main')),
+      );
     }
-    if (subView == 'rules' || subView == 'members') {
-      return _buildSubView(subView);
+    if (subView == 'rules' ||
+        subView == 'members' ||
+        subView == 'game' ||
+        subView == 'donasi') {
+      return PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop) setState(() => subView = 'main');
+        },
+        child: _buildSubView(subView),
+      );
     }
 
     return StreamBuilder(
@@ -36,8 +52,7 @@ class HomeTabState extends State<HomeTab> {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
-              child:
-                  CircularProgressIndicator(color: AppColors.primary));
+              child: CircularProgressIndicator(color: AppColors.primary));
         }
 
         final data =
@@ -81,7 +96,7 @@ class HomeTabState extends State<HomeTab> {
                     borderRadius: BorderRadius.circular(14),
                     gradient: const LinearGradient(colors: [
                       Color(0xFFA78BFA),
-                      Color(0xFF818CF8)
+                      Color(0xFF818CF8),
                     ]),
                   ),
                   padding: const EdgeInsets.all(2),
@@ -112,8 +127,8 @@ class HomeTabState extends State<HomeTab> {
                 if (!snap.hasData || snap.data!.docs.isEmpty) {
                   return const SizedBox.shrink();
                 }
-                final latest = snap.data!.docs.first.data()
-                    as Map<String, dynamic>;
+                final latest =
+                    snap.data!.docs.first.data() as Map<String, dynamic>;
                 final bannerTitle = latest['title'] ?? '';
                 final bannerContent = latest['content'] ?? '';
 
@@ -123,17 +138,13 @@ class HomeTabState extends State<HomeTab> {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(32),
                         gradient: const LinearGradient(
-                          colors: [
-                            Color(0xFF7C3AED),
-                            Color(0xFFC026D3)
-                          ],
+                          colors: [Color(0xFF7C3AED), Color(0xFFC026D3)],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color:
-                                Colors.purple.withValues(alpha: 0.2),
+                            color: Colors.purple.withValues(alpha: 0.2),
                             blurRadius: 20,
                             offset: const Offset(0, 10),
                           ),
@@ -142,16 +153,13 @@ class HomeTabState extends State<HomeTab> {
                       child: Padding(
                         padding: const EdgeInsets.all(24),
                         child: Row(
-                          crossAxisAlignment:
-                              CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Container(
                               padding: const EdgeInsets.all(10),
                               decoration: BoxDecoration(
-                                color: Colors.white
-                                    .withValues(alpha: 0.2),
-                                borderRadius:
-                                    BorderRadius.circular(14),
+                                color: Colors.white.withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(14),
                               ),
                               child: const Icon(Icons.campaign,
                                   color: Colors.white, size: 24),
@@ -159,8 +167,7 @@ class HomeTabState extends State<HomeTab> {
                             const SizedBox(width: 16),
                             Expanded(
                               child: Column(
-                                crossAxisAlignment:
-                                    CrossAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   if (bannerTitle.isNotEmpty)
                                     Text(
@@ -177,8 +184,7 @@ class HomeTabState extends State<HomeTab> {
                                     Text(
                                       bannerContent,
                                       maxLines: 2,
-                                      overflow:
-                                          TextOverflow.ellipsis,
+                                      overflow: TextOverflow.ellipsis,
                                       style: const TextStyle(
                                           color: Colors.white70,
                                           fontSize: 13),
@@ -233,70 +239,31 @@ class HomeTabState extends State<HomeTab> {
             ),
             const SizedBox(height: 16),
 
-            // ── Baris 2: Saran & Masukan (full width) ────
-            GestureDetector(
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (_) => const FeedbackScreen()),
-              ),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 20, vertical: 18),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF0D9488), Color(0xFF0F766E)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+            // ── Baris 2: Saran, Game, Donasi ─────────────
+            Row(
+              children: [
+                _buildMenuCard(
+                  Icons.lightbulb_outline,
+                  'Saran',
+                  () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const FeedbackScreen()),
                   ),
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.teal.withValues(alpha: 0.2),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
                 ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(Icons.lightbulb_outline,
-                          color: Colors.white, size: 20),
-                    ),
-                    const SizedBox(width: 14),
-                    const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'SARAN & MASUKAN',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1.5,
-                              color: Colors.white,
-                            ),
-                          ),
-                          SizedBox(height: 2),
-                          Text(
-                            'Sampaikan ide dan kritikmu',
-                            style: TextStyle(
-                                fontSize: 11, color: Colors.white70),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Icon(Icons.chevron_right,
-                        color: Colors.white70),
-                  ],
+                const SizedBox(width: 16),
+                _buildMenuCard(
+                  Icons.sports_esports,
+                  'Game',
+                  () => setState(() => subView = 'game'),
                 ),
-              ),
+                const SizedBox(width: 16),
+                _buildMenuCard(
+                  Icons.volunteer_activism,
+                  'Donasi',
+                  () => setState(() => subView = 'donasi'),
+                ),
+              ],
             ),
             const SizedBox(height: 32),
 
@@ -334,8 +301,7 @@ class HomeTabState extends State<HomeTab> {
                         const SizedBox(width: 12),
                         Text('Belum ada aktivitas terbaru.',
                             style: TextStyle(
-                                fontSize: 13,
-                                color: AppColors.textDim)),
+                                fontSize: 13, color: AppColors.textDim)),
                       ],
                     ),
                   );
@@ -476,8 +442,7 @@ class HomeTabState extends State<HomeTab> {
           onTap: () => setState(() => subView = 'main'),
           child: Row(
             children: [
-              Icon(Icons.chevron_left, color: AppColors.accent,
-                  size: 20),
+              Icon(Icons.chevron_left, color: AppColors.accent, size: 20),
               Text('KEMBALI',
                   style: TextStyle(
                       color: AppColors.accent,
@@ -489,7 +454,13 @@ class HomeTabState extends State<HomeTab> {
         ),
         const SizedBox(height: 16),
         Text(
-          viewType == 'rules' ? 'Panduan.' : 'Anggota.',
+          viewType == 'rules'
+              ? 'Panduan.'
+              : viewType == 'members'
+                  ? 'Anggota.'
+                  : viewType == 'game'
+                      ? 'Game.'
+                      : 'Donasi.',
           style: TextStyle(
               fontSize: 32,
               fontWeight: FontWeight.w900,
@@ -504,20 +475,17 @@ class HomeTabState extends State<HomeTab> {
                 .orderBy('order')
                 .snapshots(),
             builder: (context, snapshot) {
-              if (snapshot.connectionState ==
-                  ConnectionState.waiting) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(
                     child: CircularProgressIndicator(
                         color: AppColors.primary));
               }
-              if (!snapshot.hasData ||
-                  snapshot.data!.docs.isEmpty) {
+              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                 return Center(
                   child: Padding(
                     padding: const EdgeInsets.all(24),
                     child: Text('Belum ada panduan.',
-                        style:
-                            TextStyle(color: AppColors.textDim)),
+                        style: TextStyle(color: AppColors.textDim)),
                   ),
                 );
               }
@@ -526,8 +494,7 @@ class HomeTabState extends State<HomeTab> {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: rules.length,
-                separatorBuilder: (_, __) =>
-                    const SizedBox(height: 12),
+                separatorBuilder: (_, __) => const SizedBox(height: 12),
                 itemBuilder: (context, index) {
                   final r =
                       rules[index].data() as Map<String, dynamic>;
@@ -542,28 +509,354 @@ class HomeTabState extends State<HomeTab> {
               );
             },
           ),
+        ] else if (viewType == 'game') ...[
+          _buildGameView(),
+        ] else if (viewType == 'donasi') ...[
+          _buildDonasiView(),
         ] else ...[
           StreamBuilder(
             stream: userService.getAllMembers(),
             builder: (context, snapshot) {
-              if (snapshot.connectionState ==
-                  ConnectionState.waiting) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(
                     child: CircularProgressIndicator(
                         color: AppColors.primary));
               }
-              if (!snapshot.hasData ||
-                  snapshot.data!.docs.isEmpty) {
+              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                 return Center(
                   child: Text('Belum ada anggota.',
-                      style:
-                          TextStyle(color: AppColors.textDim)),
+                      style: TextStyle(color: AppColors.textDim)),
                 );
               }
               return MemberGrid(members: snapshot.data!.docs);
             },
           ),
         ],
+      ],
+    );
+  }
+
+  Widget _buildGameView() {
+  return Column(
+    children: [
+      // Info
+      Container(
+  padding: const EdgeInsets.all(20),
+  decoration: BoxDecoration(
+    gradient: const LinearGradient(
+      colors: [Color(0xFF7C0000), Color(0xFFDC2626)],
+    ),
+    borderRadius: BorderRadius.circular(20),
+  ),
+  child: Row(
+    children: [
+      Container(
+        width: 56,
+        height: 56,
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.15),
+          shape: BoxShape.circle,
+        ),
+        child: const Icon(
+          Icons.gps_fixed,
+          color: Colors.white,
+          size: 30,
+        ),
+      ),
+      const SizedBox(width: 16),
+      Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'RUSSIAN ROULETTE',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                Icon(Icons.people,
+                    color: Colors.white70, size: 12),
+                const SizedBox(width: 4),
+                const Text(
+                  'Uji nyalimu bersama teman-teman!',
+                  style: TextStyle(
+                      color: Colors.white70, fontSize: 12),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    ],
+  ),
+      ),
+      const SizedBox(height: 16),
+      GestureDetector(
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const RussianRoulettePage(),
+          ),
+        ),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            color: AppColors.card,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+                color: Colors.red.withValues(alpha: 0.4)),
+          ),
+          alignment: Alignment.center,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.sports_esports,
+                  color: Colors.red.shade400, size: 20),
+              const SizedBox(width: 10),
+              Text(
+                'MAIN SEKARANG',
+                style: TextStyle(
+                  color: Colors.red.shade400,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 2,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ],
+  );
+}
+
+  Widget _buildDonasiView() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('donations')
+          .orderBy('createdAt', descending: false)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+              child: CircularProgressIndicator(color: AppColors.primary));
+        }
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(40),
+              child: Column(
+                children: [
+                  Icon(Icons.volunteer_activism,
+                      size: 56, color: Colors.purple.shade100),
+                  const SizedBox(height: 16),
+                  Text('Belum ada info donasi.',
+                      style: TextStyle(color: AppColors.textDim)),
+                ],
+              ),
+            ),
+          );
+        }
+        final donations = snapshot.data!.docs;
+        return ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: donations.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 12),
+          itemBuilder: (context, index) {
+            final d = donations[index].data() as Map<String, dynamic>;
+            final imageBase64 = d['imageBase64'] ?? '';
+            final link = d['link'] ?? '';
+            final noRek = d['noRek'] ?? '';
+            final bank = d['bank'] ?? '';
+            final atasNama = d['atasNama'] ?? '';
+
+            return Container(
+              decoration: BoxDecoration(
+                color: AppColors.card,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (imageBase64.isNotEmpty)
+                    ClipRRect(
+                      borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(20)),
+                      child: Image.memory(
+                        base64Decode(imageBase64),
+                        width: double.infinity,
+                        height: 160,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.green.shade50,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(Icons.volunteer_activism,
+                                  color: Colors.green.shade600, size: 20),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                d['title'] ?? '',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w900,
+                                  color: AppColors.textMain,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if ((d['description'] ?? '').isNotEmpty) ...[
+                          const SizedBox(height: 10),
+                          Text(
+                            d['description'] ?? '',
+                            style: TextStyle(
+                                fontSize: 13,
+                                color: AppColors.textDim,
+                                height: 1.5),
+                          ),
+                        ],
+
+                        // Info rekening
+                        if (noRek.isNotEmpty || bank.isNotEmpty) ...[
+                          const SizedBox(height: 16),
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.green.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                  color:
+                                      Colors.green.withValues(alpha: 0.3)),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'INFO REKENING',
+                                  style: TextStyle(
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 2,
+                                    color: Colors.green.shade700,
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                if (bank.isNotEmpty)
+                                  _buildRekeningRow(
+                                      'Bank', bank, Icons.account_balance),
+                                if (noRek.isNotEmpty) ...[
+                                  const SizedBox(height: 8),
+                                  _buildRekeningRow('No. Rekening', noRek,
+                                      Icons.credit_card),
+                                ],
+                                if (atasNama.isNotEmpty) ...[
+                                  const SizedBox(height: 8),
+                                  _buildRekeningRow(
+                                      'Atas Nama', atasNama, Icons.person),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ],
+
+                        if (link.isNotEmpty) ...[
+                          const SizedBox(height: 12),
+                          GestureDetector(
+                            onTap: () async {
+                              final uri = Uri.tryParse(link);
+                              if (uri != null && await canLaunchUrl(uri)) {
+                                await launchUrl(uri,
+                                    mode: LaunchMode.externalApplication);
+                              }
+                            },
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 12),
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    Color(0xFF059669),
+                                    Color(0xFF047857)
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              alignment: Alignment.center,
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.center,
+                                children: [
+                                  const Icon(Icons.open_in_new,
+                                      size: 16, color: Colors.white),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Donasi Sekarang',
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildRekeningRow(String label, String value, IconData icon) {
+    return Row(
+      children: [
+        Icon(icon, size: 14, color: Colors.green.shade600),
+        const SizedBox(width: 8),
+        Text(
+          '$label: ',
+          style: TextStyle(
+              fontSize: 12,
+              color: AppColors.textDim,
+              fontWeight: FontWeight.bold),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: TextStyle(
+                fontSize: 12,
+                color: AppColors.textMain,
+                fontWeight: FontWeight.w600),
+          ),
+        ),
       ],
     );
   }
@@ -584,8 +877,7 @@ class HomeTabState extends State<HomeTab> {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
         child: ExpansionTile(
-          tilePadding:
-              const EdgeInsets.symmetric(horizontal: 16),
+          tilePadding: const EdgeInsets.symmetric(horizontal: 16),
           shape: const RoundedRectangleBorder(),
           collapsedShape: const RoundedRectangleBorder(),
           backgroundColor: AppColors.card,
@@ -595,8 +887,7 @@ class HomeTabState extends State<HomeTab> {
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textMain)),
-          trailing:
-              Icon(Icons.expand_more, color: AppColors.textDim),
+          trailing: Icon(Icons.expand_more, color: AppColors.textDim),
           children: [
             Container(
               width: double.infinity,
@@ -627,8 +918,7 @@ class HomeTabState extends State<HomeTab> {
                     GestureDetector(
                       onTap: () async {
                         final uri = Uri.tryParse(link);
-                        if (uri != null &&
-                            await canLaunchUrl(uri)) {
+                        if (uri != null && await canLaunchUrl(uri)) {
                           await launchUrl(uri,
                               mode: LaunchMode.externalApplication);
                         }
@@ -637,8 +927,8 @@ class HomeTabState extends State<HomeTab> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 14, vertical: 8),
                         decoration: BoxDecoration(
-                          color: AppColors.primary
-                              .withValues(alpha: 0.08),
+                          color:
+                              AppColors.primary.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                               color: AppColors.primary

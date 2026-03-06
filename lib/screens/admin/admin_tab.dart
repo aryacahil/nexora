@@ -5,6 +5,8 @@ import 'sections/admin_users.dart';
 import 'sections/admin_rules.dart';
 import 'sections/admin_channels.dart';
 import 'sections/admin_announcements.dart';
+import 'sections/admin_feedbacks.dart';
+import 'sections/admin_donations.dart';
 
 class AdminTab extends StatefulWidget {
   const AdminTab({super.key});
@@ -107,6 +109,26 @@ class _AdminTabState extends State<AdminTab> {
           MaterialPageRoute(builder: (_) => const AdminAnnouncements()),
         ),
       ),
+      _AdminMenu(
+        icon: Icons.inbox_rounded,
+        label: 'Saran & Laporan',
+        desc: 'Lihat dan kelola saran dari anggota',
+        color: Colors.teal,
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const AdminFeedbacks()),
+        ),
+      ),
+      _AdminMenu(
+        icon: Icons.volunteer_activism_rounded,
+        label: 'Kelola Donasi',
+        desc: 'Tambah, edit, hapus info donasi',
+        color: Colors.pink,
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const AdminDonations()),
+        ),
+      ),
     ];
 
     return ListView(
@@ -129,8 +151,9 @@ class _AdminTabState extends State<AdminTab> {
             color: _isOwner ? Colors.orange.shade50 : Colors.purple.shade50,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color:
-                  _isOwner ? Colors.orange.shade200 : Colors.purple.shade200,
+              color: _isOwner
+                  ? Colors.orange.shade200
+                  : Colors.purple.shade200,
             ),
           ),
           child: Row(
@@ -145,7 +168,9 @@ class _AdminTabState extends State<AdminTab> {
               ),
               const SizedBox(width: 4),
               Text(
-                _isOwner ? 'Owner — Akses penuh' : 'Admin — Akses terbatas',
+                _isOwner
+                    ? 'Owner — Akses penuh'
+                    : 'Admin — Akses terbatas',
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
