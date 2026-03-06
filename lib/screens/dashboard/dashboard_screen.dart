@@ -17,10 +17,34 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   int activeTab = 0;
   final GlobalKey<HomeTabState> _homeTabKey = GlobalKey<HomeTabState>();
-  final bool _isAdmin = AdminService().isAdmin;
+  final AdminService _adminService = AdminService();
+  bool _isAdminOrOwner = false;
+  bool _roleLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRole();
+  }
+
+  Future<void> _loadRole() async {
+    await _adminService.loadRole();
+    if (mounted) {
+      setState(() {
+        _isAdminOrOwner = _adminService.isAdminOrOwner;
+        _roleLoaded = true;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (!_roleLoaded) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+      );
+    }
+
     return Scaffold(
       body: Stack(
         children: [
@@ -44,8 +68,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       _buildNavItem(Icons.home_filled, 0),
                       _buildNavItem(Icons.campaign, 1),
                       _buildNavItem(Icons.person, 2),
-                      // Tab admin hanya muncul kalau isAdmin
-                      if (_isAdmin) _buildNavItem(Icons.admin_panel_settings, 3),
+                      if (_isAdminOrOwner) _buildNavItem(Icons.admin_panel_settings, 3),
                     ],
                   ),
                 ),

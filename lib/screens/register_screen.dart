@@ -146,7 +146,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   boxShadow: [BoxShadow(color: Colors.purple.withValues(alpha: 0.3), blurRadius: 15, offset: const Offset(0, 5))],
                                 ),
                                 alignment: Alignment.center,
-                                child: const Text('DAFTAR', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 2)),
+                                child: Text('DAFTAR', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 2)),
                               ),
                             ),
                             const SizedBox(height: 16),

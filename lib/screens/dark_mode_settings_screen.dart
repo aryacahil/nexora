@@ -77,7 +77,7 @@ class _DarkModeSettingsScreenState extends State<DarkModeSettingsScreen> {
                       _themeProvider.isDarkMode
                           ? 'Mode Gelap Aktif'
                           : 'Mode Terang Aktif',
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Colors.white,
                         fontSize: 16,
                         fontWeight: FontWeight.w900,
@@ -88,7 +88,7 @@ class _DarkModeSettingsScreenState extends State<DarkModeSettingsScreen> {
                       _themeProvider.isDarkMode
                           ? 'Tampilan gelap untuk mata'
                           : 'Tampilan terang default',
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Colors.white70,
                         fontSize: 12,
                       ),

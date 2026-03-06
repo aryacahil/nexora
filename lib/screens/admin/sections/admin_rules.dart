@@ -14,7 +14,7 @@ class AdminRules extends StatelessWidget {
       appBar: _buildAppBar(context, 'Kelola Panduan'),
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.primary,
-        child: const Icon(Icons.add, color: Colors.white),
+        child: Icon(Icons.add, color: Colors.white),
         onPressed: () => _showFormDialog(context, adminService),
       ),
       body: StreamBuilder(
@@ -91,13 +91,13 @@ class AdminRules extends StatelessWidget {
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.card,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Hapus Panduan', style: TextStyle(fontWeight: FontWeight.w900)),
+        title: Text('Hapus Panduan', style: TextStyle(fontWeight: FontWeight.w900)),
         content: Text('Hapus "$title"?', style: TextStyle(color: AppColors.textDim)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: Text('Batal', style: TextStyle(color: AppColors.textDim))),
           TextButton(
             onPressed: () async { Navigator.pop(context); await adminService.deleteRule(id); },
-            child: const Text('Hapus', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+            child: Text('Hapus', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -154,7 +154,7 @@ Widget _buildCard({required String title, required String subtitle, required Voi
           ),
         ),
         IconButton(icon: Icon(Icons.edit_outlined, color: AppColors.accent, size: 20), onPressed: onEdit),
-        IconButton(icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20), onPressed: onDelete),
+        IconButton(icon: Icon(Icons.delete_outline, color: Colors.red, size: 20), onPressed: onDelete),
       ],
     ),
   );

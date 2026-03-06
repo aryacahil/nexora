@@ -10,7 +10,6 @@ class UserService {
 
   String? get uid => _auth.currentUser?.uid;
 
-  // Buat profil baru saat register
   Future<void> createProfile(String email) async {
     if (uid == null) return;
     final existing = await _db.collection('users').doc(uid).get();
@@ -20,6 +19,10 @@ class UserService {
         'email': email,
         'name': email.split('@')[0],
         'bio': 'Kesunyian adalah kekuatan. Marga Void selamanya.',
+        'hobi': '',
+        'asal': '',
+        'instagram': '',
+        'tiktok': '',
         'photoBase64': '',
         'role': 'Member',
         'createdAt': FieldValue.serverTimestamp(),
@@ -27,48 +30,51 @@ class UserService {
     }
   }
 
-  // Ambil data profil sendiri (Future, bukan stream)
   Future<Map<String, dynamic>?> getMyProfile() async {
     if (uid == null) return null;
     final doc = await _db.collection('users').doc(uid).get();
     return doc.data();
   }
 
-  // Stream profil sendiri (realtime)
   Stream myProfileStream() {
     return _db.collection('users').doc(uid).snapshots();
   }
 
-  // Update profil nama & bio
-  Future<void> updateProfile({String? name, String? bio}) async {
+  Future<void> updateProfile({
+    String? name,
+    String? bio,
+    String? hobi,
+    String? asal,
+    String? instagram,
+    String? tiktok,
+  }) async {
     if (uid == null) return;
     final data = <String, dynamic>{};
     if (name != null) data['name'] = name;
     if (bio != null) data['bio'] = bio;
+    if (hobi != null) data['hobi'] = hobi;
+    if (asal != null) data['asal'] = asal;
+    if (instagram != null) data['instagram'] = instagram;
+    if (tiktok != null) data['tiktok'] = tiktok;
     await _db.collection('users').doc(uid).update(data);
   }
 
-  // Kompres foto lalu simpan sebagai Base64 ke Firestore
   Future<void> uploadPhotoBase64(File file) async {
     if (uid == null) return;
-
     final compressed = await FlutterImageCompress.compressWithFile(
       file.absolute.path,
       quality: 40,
       minWidth: 300,
       minHeight: 300,
     );
-
     if (compressed == null) throw Exception('Gagal mengompres foto.');
     if (compressed.length > 700000) {
       throw Exception('Foto terlalu besar, pilih foto yang lebih kecil.');
     }
-
     final base64Str = base64Encode(compressed);
     await _db.collection('users').doc(uid).update({'photoBase64': base64Str});
   }
 
-  // Ambil semua anggota
   Stream getAllMembers() {
     return _db.collection('users').orderBy('createdAt', descending: false).snapshots();
   }

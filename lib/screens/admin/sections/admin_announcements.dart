@@ -24,7 +24,7 @@ class AdminAnnouncements extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.primary,
-        child: const Icon(Icons.add, color: Colors.white),
+        child: Icon(Icons.add, color: Colors.white),
         onPressed: () => _showFormDialog(context, adminService),
       ),
       body: StreamBuilder(
@@ -54,7 +54,7 @@ class AdminAnnouncements extends StatelessWidget {
           return ListView.separated(
             padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
             itemCount: announcements.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            separatorBuilder: (_, _) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final a = announcements[index].data() as Map<String, dynamic>;
               final id = announcements[index].id;
@@ -112,7 +112,7 @@ class AdminAnnouncements extends StatelessWidget {
                           ),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                          icon: Icon(Icons.delete_outline, color: Colors.red, size: 20),
                           onPressed: () => _confirmDelete(context, adminService, id, a['title'] ?? ''),
                         ),
                       ],
@@ -220,7 +220,7 @@ class AdminAnnouncements extends StatelessWidget {
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.card,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Hapus Pengumuman', style: TextStyle(fontWeight: FontWeight.w900)),
+        title: Text('Hapus Pengumuman', style: TextStyle(fontWeight: FontWeight.w900)),
         content: Text(
           'Hapus pengumuman "$title"? Data tidak bisa dikembalikan.',
           style: TextStyle(color: AppColors.textDim),
@@ -235,7 +235,7 @@ class AdminAnnouncements extends StatelessWidget {
               Navigator.pop(context);
               await adminService.deleteAnnouncement(id);
             },
-            child: const Text('Hapus', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+            child: Text('Hapus', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
           ),
         ],
       ),

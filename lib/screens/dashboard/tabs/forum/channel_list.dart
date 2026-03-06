@@ -47,7 +47,7 @@ class _ChannelListState extends State<ChannelList> {
           padding: EdgeInsets.fromLTRB(24, 16, 24, 0),
           child: Text('Diskusi.', style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900, fontStyle: FontStyle.italic, color: AppColors.primary)),
         ),
-        const Padding(
+       Padding(
           padding: EdgeInsets.fromLTRB(24, 4, 24, 16),
           child: Text('Pilih channel untuk mulai berdiskusi', style: TextStyle(fontSize: 12, color: AppColors.textDim)),
         ),
@@ -61,14 +61,14 @@ class _ChannelListState extends State<ChannelList> {
                       return const Center(child: CircularProgressIndicator(color: AppColors.primary));
                     }
                     if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                      return const Center(child: Text('Belum ada channel.', style: TextStyle(color: AppColors.textDim)));
+                      return Center(child: Text('Belum ada channel.', style: TextStyle(color: AppColors.textDim)));
                     }
 
                     final channels = snapshot.data!.docs;
                     return ListView.separated(
                       padding: const EdgeInsets.fromLTRB(24, 0, 24, 120),
                       itemCount: channels.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      separatorBuilder: (_, _) => const SizedBox(height: 12),
                       itemBuilder: (context, index) {
                         final ch = channels[index].data() as Map<String, dynamic>;
                         final channelId = channels[index].id;

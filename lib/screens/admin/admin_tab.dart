@@ -6,22 +6,51 @@ import 'sections/admin_rules.dart';
 import 'sections/admin_channels.dart';
 import 'sections/admin_announcements.dart';
 
-class AdminTab extends StatelessWidget {
+class AdminTab extends StatefulWidget {
   const AdminTab({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final adminService = AdminService();
+  State<AdminTab> createState() => _AdminTabState();
+}
 
-    if (!adminService.isAdmin) {
-      return const Center(
+class _AdminTabState extends State<AdminTab> {
+  final AdminService _adminService = AdminService();
+  bool _canAccess = false;
+  bool _isOwner = false;
+  bool _loaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAccess();
+  }
+
+  Future<void> _checkAccess() async {
+    await _adminService.loadRole();
+    if (mounted) {
+      setState(() {
+        _canAccess = _adminService.isAdminOrOwner;
+        _isOwner = _adminService.isOwnerCached;
+        _loaded = true;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_loaded) {
+      return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+    }
+
+    if (!_canAccess) {
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.lock, size: 48, color: AppColors.textDim),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text('Akses Ditolak', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.textMain)),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text('Kamu tidak punya akses admin.', style: TextStyle(color: AppColors.textDim)),
           ],
         ),
@@ -33,16 +62,19 @@ class AdminTab extends StatelessWidget {
       children: [
         Text('Admin Panel.', style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900, fontStyle: FontStyle.italic, color: AppColors.primary)),
         const SizedBox(height: 4),
-        Text('Kelola seluruh konten Marga Void', style: TextStyle(fontSize: 12, color: AppColors.textDim)),
+        Text(
+          _isOwner ? 'Owner — Akses penuh' : 'Admin — Akses terbatas',
+          style: TextStyle(fontSize: 12, color: AppColors.textDim),
+        ),
         const SizedBox(height: 32),
 
         _buildMenuCard(
           context,
           icon: Icons.people,
           label: 'Kelola User',
-          desc: 'Lihat, edit role, hapus anggota',
+          desc: _isOwner ? 'Lihat, edit role, hapus anggota' : 'Lihat dan edit role Member',
           color: Colors.purple,
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminUsers())),
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => AdminUsers(isOwner: _isOwner))),
         ),
         const SizedBox(height: 16),
         _buildMenuCard(

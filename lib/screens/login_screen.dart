@@ -142,7 +142,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   boxShadow: [BoxShadow(color: Colors.purple.withValues(alpha: 0.3), blurRadius: 15, offset: const Offset(0, 5))],
                                 ),
                                 alignment: Alignment.center,
-                                child: const Text('MASUK', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 2)),
+                                child: Text('MASUK', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 2)),
                               ),
                             ),
                             const SizedBox(height: 16),

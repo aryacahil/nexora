@@ -99,7 +99,7 @@ class _ChannelChatState extends State<ChannelChat> {
               Navigator.pop(context);
               await _chatService.deleteMessage(widget.channelId, messageId);
             },
-            child: const Text('Hapus', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+            child: Text('Hapus', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -193,8 +193,8 @@ class _ChannelChatState extends State<ChannelChat> {
                                 ),
                                 if (isMe)
                                   ListTile(
-                                    leading: const Icon(Icons.delete_outline, color: Colors.red),
-                                    title: const Text('Hapus Pesan', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
+                                    leading: Icon(Icons.delete_outline, color: Colors.red),
+                                    title: Text('Hapus Pesan', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
                                     onTap: () {
                                       Navigator.pop(context);
                                       _showDeleteDialog(msgId);
@@ -218,7 +218,7 @@ class _ChannelChatState extends State<ChannelChat> {
                                   gradient: const LinearGradient(colors: [Color(0xFF8B5CF6), Color(0xFFD946EF)]),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
-                                child: const Icon(Icons.person, color: Colors.white, size: 18),
+                                child: Icon(Icons.person, color: Colors.white, size: 18),
                               ),
                               const SizedBox(width: 8),
                             ],
@@ -377,7 +377,7 @@ class _ChannelChatState extends State<ChannelChat> {
                   child: Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
-                    child: const Icon(Icons.send, color: Colors.white, size: 20),
+                    child: Icon(Icons.send, color: Colors.white, size: 20),
                   ),
                 ),
               ],

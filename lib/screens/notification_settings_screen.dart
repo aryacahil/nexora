@@ -23,11 +23,13 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
 
   Future<void> _loadSettings() async {
     final settings = await _notifService.getNotifSettings();
-    setState(() {
-      _notifAnnouncements = settings['notif_announcements'] ?? true;
-      _notifDiscussion = settings['notif_discussion'] ?? true;
-      _isLoading = false;
-    });
+    if (mounted) {
+      setState(() {
+        _notifAnnouncements = settings['notif_announcements'] ?? true;
+        _notifDiscussion = settings['notif_discussion'] ?? true;
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -41,17 +43,22 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
           icon: Icon(Icons.chevron_left, color: AppColors.accent, size: 32),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text('Notifikasi & Pengingat', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.primary)),
+        title: Text(
+          'Notifikasi & Pengingat',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.primary),
+        ),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+          ? Center(child: CircularProgressIndicator(color: AppColors.primary))
           : ListView(
               padding: const EdgeInsets.all(24),
               children: [
-                Text('NOTIFIKASI PUSH', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 2, color: AppColors.textDim)),
+                Text(
+                  'NOTIFIKASI PUSH',
+                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 2, color: AppColors.textDim),
+                ),
                 const SizedBox(height: 16),
 
-                // Notif Pengumuman
                 _buildToggleTile(
                   icon: Icons.campaign,
                   iconColor: Colors.purple,
@@ -77,7 +84,6 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                 ),
                 const SizedBox(height: 12),
 
-                // Notif Diskusi
                 _buildToggleTile(
                   icon: Icons.chat_bubble_outline,
                   iconColor: Colors.blue,
@@ -103,7 +109,6 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                 ),
                 const SizedBox(height: 40),
 
-                // Info
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -116,7 +121,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                     children: [
                       Icon(Icons.info_outline, color: Colors.blue.shade400, size: 18),
                       const SizedBox(width: 10),
-                      const Expanded(
+                      Expanded(
                         child: Text(
                           'Notifikasi push dikirim langsung ke HP kamu meski aplikasi ditutup. Pastikan izin notifikasi diaktifkan di pengaturan HP.',
                           style: TextStyle(fontSize: 12, color: AppColors.textDim, height: 1.5),
@@ -170,7 +175,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
           Switch(
             value: value,
             onChanged: onChanged,
-            activeColor: AppColors.primary,
+            activeTrackColor: AppColors.primary,
           ),
         ],
       ),

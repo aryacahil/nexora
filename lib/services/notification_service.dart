@@ -1,7 +1,7 @@
-import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 class NotificationService {
@@ -15,12 +15,17 @@ class NotificationService {
   static const String _oneSignalRestApiKey = '';
 
   String? get uid => _auth.currentUser?.uid;
+  bool _initialized = false;
 
   // ── INIT ──────────────────────────────────────────────
 
   Future<void> init() async {
+    if (_initialized) return;
+    _initialized = true;
+
     OneSignal.initialize(_oneSignalAppId);
     await OneSignal.Notifications.requestPermission(true);
+    await Future.delayed(const Duration(seconds: 2));
     await _savePlayerId();
     await applyStoredSettings();
   }
@@ -29,10 +34,11 @@ class NotificationService {
     if (uid == null) return;
     try {
       final playerId = OneSignal.User.pushSubscription.id;
-      if (playerId != null) {
+      if (playerId != null && playerId.isNotEmpty) {
         await _db.collection('users').doc(uid).update({
           'oneSignalPlayerId': playerId,
         });
+        print('✅ Player ID tersimpan: $playerId');
       }
     } catch (e) {
       print('Error save player ID: $e');
@@ -45,7 +51,7 @@ class NotificationService {
     final body = content.length > 100
         ? '${content.substring(0, 100)}...'
         : content;
-    await _sendToAllUsers(title: '📢 $title', body: body);
+    await _sendToAllUsers(title: title, body: body);
   }
 
   Future<void> sendDiscussionNotification(
@@ -56,116 +62,96 @@ class NotificationService {
     final body = message.length > 100
         ? '${message.substring(0, 100)}...'
         : message;
-    await _sendOneSignalNotification(
-      title: '💬 #$channelName',
+    await _sendToDiscussionSubscribers(
+      title: '#$channelName',
       body: '$senderName: $body',
-      segment: 'discussion_subscribers',
     );
   }
 
-  // Kirim ke SEMUA user — pakai header "Key" untuk API v2
+  // Kirim ke semua user — untuk pengumuman
   Future<void> _sendToAllUsers({
     required String title,
     required String body,
   }) async {
     try {
-      print('🔔 Mengirim notifikasi ke semua user...');
+      print('🔔 Mengirim notifikasi pengumuman...');
+
+      final safeBody = body.isEmpty ? 'Notifikasi baru' : body;
+      final safeTitle = title.isEmpty ? 'Marga Void' : title;
+
+      final payload = {
+        'app_id': _oneSignalAppId,
+        'headings': {'en': safeTitle},
+        'contents': {'en': safeBody},
+        'included_segments': ['All'],
+      };
+
       final response = await http.post(
-        Uri.parse('https://onesignal.com/api/v1/notifications'),
+        Uri.parse('https://api.onesignal.com/notifications'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Key $_oneSignalRestApiKey', // ← fix: Key bukan Basic
+          'Authorization': 'Bearer $_oneSignalRestApiKey',
         },
-        body: jsonEncode({
-          'app_id': _oneSignalAppId,
-          'headings': {'en': title, 'id': title},
-          'contents': {'en': body, 'id': body},
-          'included_segments': ['All'],
-        }),
+        body: jsonEncode(payload),
       );
 
       print('📡 Response status: ${response.statusCode}');
       print('📡 Response body: ${response.body}');
 
-      if (response.statusCode == 200) {
-        print('✅ Notifikasi berhasil dikirim: $title');
-        await _db.collection('notifications_log').add({
-          'title': title,
-          'body': body,
-          'segment': 'All',
-          'sentBy': uid,
-          'sentAt': FieldValue.serverTimestamp(),
-          'status': 'success',
-        });
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        print('✅ Notifikasi pengumuman berhasil dikirim: $safeTitle');
       } else {
-        print('❌ Gagal: ${response.body}');
-        await _db.collection('notifications_log').add({
-          'title': title,
-          'body': body,
-          'segment': 'All',
-          'sentBy': uid,
-          'sentAt': FieldValue.serverTimestamp(),
-          'status': 'failed',
-          'error': response.body,
-        });
+        print('❌ Gagal kirim pengumuman: ${response.body}');
       }
     } catch (e) {
       print('❌ Error kirim notifikasi: $e');
     }
   }
 
-  // Kirim ke segment tertentu — pakai header "Key" untuk API v2
-  Future<void> _sendOneSignalNotification({
+  // Kirim ke subscriber diskusi — filter by tag notif_discussion=true
+  Future<void> _sendToDiscussionSubscribers({
     required String title,
     required String body,
-    required String segment,
   }) async {
     try {
+      print('🔔 Mengirim notifikasi diskusi...');
+
+      final safeBody = body.isEmpty ? 'Pesan baru' : body;
+      final safeTitle = title.isEmpty ? 'Marga Void' : title;
+
+      final payload = {
+        'app_id': _oneSignalAppId,
+        'headings': {'en': safeTitle},
+        'contents': {'en': safeBody},
+        'filters': [
+          {
+            'field': 'tag',
+            'key': 'notif_discussion',
+            'relation': '=',
+            'value': 'true',
+          },
+        ],
+      };
+
       final response = await http.post(
-        Uri.parse('https://onesignal.com/api/v1/notifications'),
+        Uri.parse('https://api.onesignal.com/notifications'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Key $_oneSignalRestApiKey', // ← fix: Key bukan Basic
+          'Authorization': 'Bearer $_oneSignalRestApiKey',
         },
-        body: jsonEncode({
-          'app_id': _oneSignalAppId,
-          'headings': {'en': title, 'id': title},
-          'contents': {'en': body, 'id': body},
-          'filters': [
-            {
-              'field': 'tag',
-              'key': 'segment',
-              'relation': '=',
-              'value': segment,
-            },
-          ],
-        }),
+        body: jsonEncode(payload),
       );
 
-      if (response.statusCode == 200) {
-        print('✅ Notifikasi berhasil dikirim ke $segment: $title');
-        await _db.collection('notifications_log').add({
-          'title': title,
-          'body': body,
-          'segment': segment,
-          'sentBy': uid,
-          'sentAt': FieldValue.serverTimestamp(),
-          'status': 'success',
-        });
+      print('📡 Response status: ${response.statusCode}');
+      print('📡 Response body: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        print('✅ Notifikasi diskusi berhasil dikirim: $safeTitle');
       } else {
-        print('❌ Gagal: ${response.body}');
-        await _db.collection('notifications_log').add({
-          'title': title,
-          'body': body,
-          'segment': segment,
-          'sentBy': uid,
-          'sentAt': FieldValue.serverTimestamp(),
-          'status': 'failed',
-          'error': response.body,
-        });
+        print('❌ Gagal kirim diskusi: ${response.body}');
       }
     } catch (e) {
-      print('❌ Error: $e');
+      print('❌ Error kirim notifikasi diskusi: $e');
     }
   }
 
@@ -173,24 +159,26 @@ class NotificationService {
 
   Future<void> subscribeAnnouncements() async {
     OneSignal.User.addTagWithKey('notif_announcements', 'true');
-    OneSignal.User.addTagWithKey('segment', 'announcement_subscribers');
     await _saveNotifSetting('notif_announcements', true);
+    print('✅ Subscribe announcements');
   }
 
   Future<void> unsubscribeAnnouncements() async {
-    OneSignal.User.removeTag('notif_announcements');
+    OneSignal.User.addTagWithKey('notif_announcements', 'false');
     await _saveNotifSetting('notif_announcements', false);
+    print('✅ Unsubscribe announcements');
   }
 
   Future<void> subscribeDiscussion() async {
     OneSignal.User.addTagWithKey('notif_discussion', 'true');
-    OneSignal.User.addTagWithKey('segment', 'discussion_subscribers');
     await _saveNotifSetting('notif_discussion', true);
+    print('✅ Subscribe discussion');
   }
 
   Future<void> unsubscribeDiscussion() async {
-    OneSignal.User.removeTag('notif_discussion');
+    OneSignal.User.addTagWithKey('notif_discussion', 'false');
     await _saveNotifSetting('notif_discussion', false);
+    print('✅ Unsubscribe discussion');
   }
 
   // ── SETTINGS ──────────────────────────────────────────
@@ -210,7 +198,7 @@ class NotificationService {
     if (uid == null) return {};
     try {
       final doc = await _db.collection('users').doc(uid).get();
-      final data = doc.data() ?? {}; // ← fix cast
+      final data = doc.data() ?? {};
       final settings = data['settings'] as Map<String, dynamic>? ?? {};
       return {
         'notif_announcements': settings['notif_announcements'] ?? true,
@@ -245,9 +233,9 @@ class NotificationService {
   Future<void> removeFcmToken() async {
     if (uid == null) return;
     try {
-      OneSignal.User.removeTag('notif_announcements');
-      OneSignal.User.removeTag('notif_discussion');
-      OneSignal.User.removeTag('segment');
+      _initialized = false;
+      OneSignal.User.addTagWithKey('notif_announcements', 'false');
+      OneSignal.User.addTagWithKey('notif_discussion', 'false');
       await _db.collection('users').doc(uid).update({
         'oneSignalPlayerId': '',
       });

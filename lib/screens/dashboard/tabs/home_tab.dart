@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'forum/channel_list.dart';
+import 'member_grid.dart';
 import '../../../core/colors.dart';
 import '../../../services/user_service.dart';
 
@@ -83,13 +84,39 @@ class HomeTabState extends State<HomeTab> {
                   .limit(1)
                   .snapshots(),
               builder: (context, snap) {
-                String bannerTitle = 'Update Marga';
-                String bannerContent = 'Cek kanal Discord untuk agenda mabar minggu ini.';
-                if (snap.hasData && snap.data!.docs.isNotEmpty) {
-                  final latest = snap.data!.docs.first.data() as Map<String, dynamic>;
-                  bannerTitle = latest['title'] ?? bannerTitle;
-                  bannerContent = latest['content'] ?? bannerContent;
+                if (!snap.hasData || snap.data!.docs.isEmpty) {
+                  return Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(32),
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF7C3AED), Color(0xFFC026D3)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      boxShadow: [BoxShadow(color: Colors.purple.withValues(alpha: 0.2), blurRadius: 20, offset: const Offset(0, 10))],
+                    ),
+                    child: const Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Selamat Datang!',
+                          style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold, fontStyle: FontStyle.italic),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          'Belum ada pengumuman terbaru.',
+                          style: TextStyle(color: Colors.white70, fontSize: 14),
+                        ),
+                      ],
+                    ),
+                  );
                 }
+
+                final latest = snap.data!.docs.first.data() as Map<String, dynamic>;
+                final bannerTitle = latest['title'] ?? 'Selamat Datang!';
+                final bannerContent = latest['content'] ?? 'Belum ada pengumuman terbaru.';
+
                 return Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
@@ -104,9 +131,17 @@ class HomeTabState extends State<HomeTab> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(bannerTitle, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold, fontStyle: FontStyle.italic)),
+                      Text(
+                        bannerTitle,
+                        style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold, fontStyle: FontStyle.italic),
+                      ),
                       const SizedBox(height: 4),
-                      Text(bannerContent, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white70, fontSize: 14)),
+                      Text(
+                        bannerContent,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(color: Colors.white70, fontSize: 14),
+                      ),
                     ],
                   ),
                 );
@@ -244,7 +279,7 @@ class HomeTabState extends State<HomeTab> {
       children: [
         GestureDetector(
           onTap: () => setState(() => subView = 'main'),
-          child: const Row(
+          child: Row(
             children: [
               Icon(Icons.chevron_left, color: AppColors.accent, size: 20),
               Text('KEMBALI', style: TextStyle(color: AppColors.accent, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1)),
@@ -259,7 +294,6 @@ class HomeTabState extends State<HomeTab> {
         const SizedBox(height: 24),
 
         if (viewType == 'rules') ...[
-          // Panduan dari Firestore
           StreamBuilder<QuerySnapshot>(
             stream: FirebaseFirestore.instance
                 .collection('rules')
@@ -270,9 +304,9 @@ class HomeTabState extends State<HomeTab> {
                 return const Center(child: CircularProgressIndicator(color: AppColors.primary));
               }
               if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                return const Center(
+                return Center(
                   child: Padding(
-                    padding: EdgeInsets.all(24),
+                    padding: const EdgeInsets.all(24),
                     child: Text('Belum ada panduan.', style: TextStyle(color: AppColors.textDim)),
                   ),
                 );
@@ -291,7 +325,6 @@ class HomeTabState extends State<HomeTab> {
             },
           ),
         ] else ...[
-          // Anggota dari Firestore
           StreamBuilder(
             stream: userService.getAllMembers(),
             builder: (context, snapshot) {
@@ -299,69 +332,11 @@ class HomeTabState extends State<HomeTab> {
                 return const Center(child: CircularProgressIndicator(color: AppColors.primary));
               }
               if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                return const Center(
+                return Center(
                   child: Text('Belum ada anggota.', style: TextStyle(color: AppColors.textDim)),
                 );
               }
-              final members = snapshot.data!.docs;
-              return ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: members.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 12),
-                itemBuilder: (context, index) {
-                  final m = members[index].data() as Map<String, dynamic>;
-                  final photo = m['photoBase64'] ?? '';
-                  final name = m['name'] ?? 'Anggota';
-                  final role = m['role'] ?? 'Member';
-                  final bio = m['bio'] ?? '';
-
-                  return Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.card,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 56, height: 56,
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(colors: [Color(0xFF8B5CF6), Color(0xFFD946EF)]),
-                            borderRadius: BorderRadius.circular(18),
-                          ),
-                          padding: const EdgeInsets.all(2),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(16),
-                            child: photo.isNotEmpty
-                                ? Image.memory(base64Decode(photo), fit: BoxFit.cover)
-                                : Container(
-                                    color: Colors.purple.shade100,
-                                    child: const Icon(Icons.person, color: Colors.purple),
-                                  ),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(name, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: AppColors.textMain)),
-                              const SizedBox(height: 2),
-                              Text(role.toUpperCase(), style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1, color: AppColors.accent)),
-                              if (bio.isNotEmpty) ...[
-                                const SizedBox(height: 4),
-                                Text(bio, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, color: AppColors.textDim)),
-                              ],
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              );
+              return MemberGrid(members: snapshot.data!.docs);
             },
           ),
         ],
@@ -369,7 +344,6 @@ class HomeTabState extends State<HomeTab> {
     );
   }
 
-  // Panduan dengan ekspansi konten
   Widget _buildRuleTile(String title, String content) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),

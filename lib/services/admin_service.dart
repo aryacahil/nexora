@@ -5,15 +5,66 @@ class AdminService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // ⚠️ GANTI dengan email admin kamu
-  static const List<String> adminEmails = [
+  // Email yang otomatis jadi Owner
+  static const List<String> ownerEmails = [
     'campgreget2@gmail.com',
-    // tambahkan email lain di sini
+    // tambahkan email owner lain di sini
   ];
 
-  bool get isAdmin {
-    final email = _auth.currentUser?.email ?? '';
-    return adminEmails.contains(email);
+  String get currentEmail => _auth.currentUser?.email ?? '';
+  String? get currentUid => _auth.currentUser?.uid;
+
+  // Cek apakah email ini adalah owner
+  bool get isOwnerEmail => ownerEmails.contains(currentEmail);
+
+  // Cek role dari Firestore (async)
+  Future<String> getMyRole() async {
+    if (currentUid == null) return 'Member';
+    try {
+      // Kalau email owner, pastikan role di Firestore juga Owner
+      if (isOwnerEmail) {
+        await _ensureOwnerRole();
+        return 'Owner';
+      }
+      final doc = await _db.collection('users').doc(currentUid).get();
+      final data = doc.data() ?? {};
+      return data['role'] ?? 'Member';
+    } catch (e) {
+      return 'Member';
+    }
+  }
+
+  // Pastikan owner email selalu punya role Owner di Firestore
+  Future<void> _ensureOwnerRole() async {
+    if (currentUid == null) return;
+    try {
+      await _db.collection('users').doc(currentUid).update({'role': 'Owner'});
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  // Cek apakah bisa akses admin (Owner atau Admin)
+  Future<bool> get canAccessAdmin async {
+    final role = await getMyRole();
+    return role == 'Owner' || role == 'Admin';
+  }
+
+  // Cek apakah Owner
+  Future<bool> get isOwner async {
+    final role = await getMyRole();
+    return role == 'Owner';
+  }
+
+  // Cek sync (dari cache local, untuk UI cepat)
+  // Gunakan ini setelah loadRole() dipanggil
+  String _cachedRole = 'Member';
+  String get cachedRole => _cachedRole;
+  bool get isAdminOrOwner => _cachedRole == 'Owner' || _cachedRole == 'Admin';
+  bool get isOwnerCached => _cachedRole == 'Owner';
+
+  Future<void> loadRole() async {
+    _cachedRole = await getMyRole();
   }
 
   // ── USERS ─────────────────────────────────────────────
@@ -22,8 +73,26 @@ class AdminService {
     return _db.collection('users').orderBy('createdAt', descending: false).snapshots();
   }
 
+  // Hanya Owner yang bisa ubah role ke Admin/Owner
   Future<void> updateUserRole(String uid, String role) async {
-    await _db.collection('users').doc(uid).update({'role': role});
+    final myRole = await getMyRole();
+
+    // Owner bisa set semua role
+    if (myRole == 'Owner') {
+      await _db.collection('users').doc(uid).update({'role': role});
+      return;
+    }
+
+    // Admin hanya bisa set Member dan Member Senior
+    if (myRole == 'Admin') {
+      if (role == 'Admin' || role == 'Owner') {
+        throw Exception('Kamu tidak punya izin untuk memberikan role ini.');
+      }
+      await _db.collection('users').doc(uid).update({'role': role});
+      return;
+    }
+
+    throw Exception('Akses ditolak.');
   }
 
   Future<void> deleteUser(String uid) async {

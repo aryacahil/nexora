@@ -3,12 +3,17 @@ import '../../../core/colors.dart';
 import '../../../services/admin_service.dart';
 
 class AdminUsers extends StatelessWidget {
-  const AdminUsers({super.key});
+  final bool isOwner;
+  const AdminUsers({super.key, required this.isOwner});
 
   @override
   Widget build(BuildContext context) {
     final adminService = AdminService();
-    final roles = ['Member', 'Member Senior', 'Admin', 'Owner'];
+
+    // Role yang bisa dipilih berdasarkan level
+    final roles = isOwner
+        ? ['Member', 'Member Senior', 'Admin', 'Owner']
+        : ['Member', 'Member Senior']; // Admin hanya bisa set role bawah
 
     return Scaffold(
       backgroundColor: AppColors.bg,
@@ -28,7 +33,7 @@ class AdminUsers extends StatelessWidget {
             return const Center(child: CircularProgressIndicator(color: AppColors.primary));
           }
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(
+            return Center(
               child: Text('Belum ada user.', style: TextStyle(color: AppColors.textDim)),
             );
           }
@@ -44,6 +49,11 @@ class AdminUsers extends StatelessWidget {
               final name = u['name'] ?? 'Anggota';
               final email = u['email'] ?? '';
               final role = u['role'] ?? 'Member';
+
+              // Tentukan apakah role user ini bisa diubah
+              final bool canEditThisUser = isOwner
+                  ? true // Owner bisa edit semua
+                  : (role != 'Owner' && role != 'Admin'); // Admin tidak bisa edit Owner/Admin lain
 
               return Container(
                 padding: const EdgeInsets.all(16),
@@ -75,44 +85,74 @@ class AdminUsers extends StatelessWidget {
                             ],
                           ),
                         ),
-                        // Hapus — hanya hapus data Firestore
-                        IconButton(
-                          icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
-                          onPressed: () => _confirmDelete(context, adminService, uid, name),
+                        // Badge role
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: _getRoleColor(role).shade50,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: _getRoleColor(role).shade200),
+                          ),
+                          child: Text(
+                            role,
+                            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: _getRoleColor(role).shade700),
+                          ),
                         ),
+                        if (isOwner) ...[
+                          const SizedBox(width: 8),
+                          IconButton(
+                            icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                            onPressed: () => _confirmDelete(context, adminService, uid, name),
+                          ),
+                        ],
                       ],
                     ),
-                    const SizedBox(height: 12),
-                    // Dropdown ganti role
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.bg,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          value: roles.contains(role) ? role : 'Member',
-                          isExpanded: true,
-                          icon: Icon(Icons.expand_more, color: AppColors.textDim),
-                          items: roles.map((r) => DropdownMenuItem(
-                            value: r,
-                            child: Text(r, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-                          )).toList(),
-                          onChanged: (newRole) async {
-                            if (newRole != null) {
-                              await adminService.updateUserRole(uid, newRole);
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Role $name diubah ke $newRole'), backgroundColor: Colors.green),
-                                );
+                    if (canEditThisUser) ...[
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.bg,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: roles.contains(role) ? role : roles.first,
+                            isExpanded: true,
+                            icon: Icon(Icons.expand_more, color: AppColors.textDim),
+                            items: roles.map((r) => DropdownMenuItem(
+                              value: r,
+                              child: Text(r, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                            )).toList(),
+                            onChanged: (newRole) async {
+                              if (newRole != null) {
+                                try {
+                                  await adminService.updateUserRole(uid, newRole);
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('Role $name diubah ke $newRole'), backgroundColor: Colors.green),
+                                    );
+                                  }
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('$e'), backgroundColor: Colors.red),
+                                    );
+                                  }
+                                }
                               }
-                            }
-                          },
+                            },
+                          ),
                         ),
                       ),
-                    ),
+                    ] else ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        'Role tidak dapat diubah',
+                        style: TextStyle(fontSize: 11, color: AppColors.textDim, fontStyle: FontStyle.italic),
+                      ),
+                    ],
                   ],
                 ),
               );
@@ -121,6 +161,15 @@ class AdminUsers extends StatelessWidget {
         },
       ),
     );
+  }
+
+  MaterialColor _getRoleColor(String role) {
+    switch (role) {
+      case 'Owner': return Colors.orange;
+      case 'Admin': return Colors.purple;
+      case 'Member Senior': return Colors.blue;
+      default: return Colors.grey;
+    }
   }
 
   void _confirmDelete(BuildContext context, AdminService adminService, String uid, String name) {
