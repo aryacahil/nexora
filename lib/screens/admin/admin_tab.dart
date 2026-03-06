@@ -39,7 +39,8 @@ class _AdminTabState extends State<AdminTab> {
   @override
   Widget build(BuildContext context) {
     if (!_loaded) {
-      return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+      return const Center(
+          child: CircularProgressIndicator(color: AppColors.primary));
     }
 
     if (!_canAccess) {
@@ -49,107 +50,201 @@ class _AdminTabState extends State<AdminTab> {
           children: [
             Icon(Icons.lock, size: 48, color: AppColors.textDim),
             const SizedBox(height: 16),
-            Text('Akses Ditolak', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.textMain)),
+            Text('Akses Ditolak',
+                style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.textMain)),
             const SizedBox(height: 8),
-            Text('Kamu tidak punya akses admin.', style: TextStyle(color: AppColors.textDim)),
+            Text('Kamu tidak punya akses admin.',
+                style: TextStyle(color: AppColors.textDim)),
           ],
         ),
       );
     }
 
+    final menus = [
+      _AdminMenu(
+        icon: Icons.people_alt_rounded,
+        label: 'Kelola User',
+        desc: _isOwner
+            ? 'Lihat, edit role, hapus anggota'
+            : 'Lihat dan edit role Member',
+        color: Colors.purple,
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (_) => AdminUsers(isOwner: _isOwner)),
+        ),
+      ),
+      _AdminMenu(
+        icon: Icons.menu_book_rounded,
+        label: 'Kelola Panduan',
+        desc: 'Tambah, edit, hapus panduan & rules',
+        color: Colors.blue,
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const AdminRules()),
+        ),
+      ),
+      _AdminMenu(
+        icon: Icons.tag_rounded,
+        label: 'Kelola Channel',
+        desc: 'Tambah, edit, hapus channel diskusi',
+        color: Colors.green,
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const AdminChannels()),
+        ),
+      ),
+      _AdminMenu(
+        icon: Icons.campaign_rounded,
+        label: 'Pengumuman',
+        desc: 'Buat dan kelola pengumuman resmi',
+        color: Colors.orange,
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const AdminAnnouncements()),
+        ),
+      ),
+    ];
+
     return ListView(
       padding: const EdgeInsets.fromLTRB(24, 60, 24, 120),
       children: [
-        Text('Admin Panel.', style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900, fontStyle: FontStyle.italic, color: AppColors.primary)),
-        const SizedBox(height: 4),
+        // ── Header ────────────────────────────────────
         Text(
-          _isOwner ? 'Owner — Akses penuh' : 'Admin — Akses terbatas',
-          style: TextStyle(fontSize: 12, color: AppColors.textDim),
+          'Admin Panel.',
+          style: TextStyle(
+            fontSize: 32,
+            fontWeight: FontWeight.w900,
+            fontStyle: FontStyle.italic,
+            color: AppColors.primary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: _isOwner ? Colors.orange.shade50 : Colors.purple.shade50,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color:
+                  _isOwner ? Colors.orange.shade200 : Colors.purple.shade200,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                _isOwner ? Icons.star_rounded : Icons.shield_rounded,
+                size: 12,
+                color: _isOwner
+                    ? Colors.orange.shade600
+                    : Colors.purple.shade600,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                _isOwner ? 'Owner — Akses penuh' : 'Admin — Akses terbatas',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: _isOwner
+                      ? Colors.orange.shade700
+                      : Colors.purple.shade700,
+                ),
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: 32),
 
-        _buildMenuCard(
-          context,
-          icon: Icons.people,
-          label: 'Kelola User',
-          desc: _isOwner ? 'Lihat, edit role, hapus anggota' : 'Lihat dan edit role Member',
-          color: Colors.purple,
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => AdminUsers(isOwner: _isOwner))),
-        ),
-        const SizedBox(height: 16),
-        _buildMenuCard(
-          context,
-          icon: Icons.menu_book,
-          label: 'Kelola Panduan',
-          desc: 'Tambah, edit, hapus panduan & rules',
-          color: Colors.blue,
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminRules())),
-        ),
-        const SizedBox(height: 16),
-        _buildMenuCard(
-          context,
-          icon: Icons.tag,
-          label: 'Kelola Channel',
-          desc: 'Tambah, edit, hapus channel diskusi',
-          color: Colors.green,
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminChannels())),
-        ),
-        const SizedBox(height: 16),
-        _buildMenuCard(
-          context,
-          icon: Icons.campaign,
-          label: 'Kelola Pengumuman',
-          desc: 'Buat dan kelola pengumuman resmi',
-          color: Colors.orange,
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminAnnouncements())),
+        // ── Grid Menu ─────────────────────────────────
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            childAspectRatio: 1.05,
+          ),
+          itemCount: menus.length,
+          itemBuilder: (context, index) {
+            final m = menus[index];
+            return GestureDetector(
+              onTap: m.onTap,
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: AppColors.card,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: AppColors.border),
+                  boxShadow: [
+                    BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.02),
+                        blurRadius: 10),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: m.color.shade50,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Icon(m.icon,
+                          color: m.color.shade600, size: 26),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          m.label,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.textMain,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          m.desc,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                              fontSize: 10,
+                              color: AppColors.textDim,
+                              height: 1.4),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
         ),
       ],
     );
   }
+}
 
-  Widget _buildMenuCard(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-    required String desc,
-    required MaterialColor color,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: AppColors.border),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10)],
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: color.shade50,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Icon(icon, color: color.shade600, size: 28),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(label, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: AppColors.textMain)),
-                  const SizedBox(height: 4),
-                  Text(desc, style: TextStyle(fontSize: 12, color: AppColors.textDim)),
-                ],
-              ),
-            ),
-            Icon(Icons.chevron_right, color: AppColors.border),
-          ],
-        ),
-      ),
-    );
-  }
+class _AdminMenu {
+  final IconData icon;
+  final String label;
+  final String desc;
+  final MaterialColor color;
+  final VoidCallback onTap;
+
+  const _AdminMenu({
+    required this.icon,
+    required this.label,
+    required this.desc,
+    required this.color,
+    required this.onTap,
+  });
 }
