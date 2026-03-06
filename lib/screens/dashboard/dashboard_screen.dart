@@ -1,10 +1,11 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../core/colors.dart';
-// Gunakan format package:nama_project/... agar lebih aman
-import 'package:nexora/screens/dashboard/tabs/home_tab.dart';
-import 'package:nexora/screens/dashboard/tabs/agenda_tab.dart';
-import 'package:nexora/screens/dashboard/tabs/profile_tab.dart';
+import '../../services/admin_service.dart';
+import 'package:marga_void/screens/dashboard/tabs/home_tab.dart';
+import 'package:marga_void/screens/dashboard/tabs/agenda_tab.dart';
+import 'package:marga_void/screens/dashboard/tabs/profile_tab.dart';
+import 'package:marga_void/screens/admin/admin_tab.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -15,10 +16,8 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   int activeTab = 0;
-  
-  // Menggunakan GlobalKey agar kita bisa mereset state di HomeTab 
-  // ketika tombol home ditekan (mirip setSubView('main') di React)
   final GlobalKey<HomeTabState> _homeTabKey = GlobalKey<HomeTabState>();
+  final bool _isAdmin = AdminService().isAdmin;
 
   @override
   Widget build(BuildContext context) {
@@ -26,8 +25,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       body: Stack(
         children: [
           Positioned.fill(child: _buildActiveTab()),
-          
-          // Floating Bottom Navigation
           Positioned(
             bottom: 32, left: 24, right: 24,
             child: ClipRRect(
@@ -37,7 +34,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Container(
                   height: 70,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.8),
+                    color: Colors.white.withValues(alpha: 0.8),
                     border: Border.all(color: AppColors.border),
                     borderRadius: BorderRadius.circular(40),
                   ),
@@ -47,6 +44,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       _buildNavItem(Icons.home_filled, 0),
                       _buildNavItem(Icons.campaign, 1),
                       _buildNavItem(Icons.person, 2),
+                      // Tab admin hanya muncul kalau isAdmin
+                      if (_isAdmin) _buildNavItem(Icons.admin_panel_settings, 3),
                     ],
                   ),
                 ),
@@ -62,10 +61,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final isActive = activeTab == index;
     return GestureDetector(
       onTap: () {
-        setState(() {
-          activeTab = index;
-        });
-        // Jika menekan Home dan sudah di Home, reset subview ke 'main'
+        setState(() => activeTab = index);
         if (index == 0 && _homeTabKey.currentState != null) {
           _homeTabKey.currentState!.resetToMain();
         }
@@ -87,6 +83,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       case 0: return HomeTab(key: _homeTabKey);
       case 1: return const AgendaTab();
       case 2: return const ProfileTab();
+      case 3: return const AdminTab();
       default: return const SizedBox();
     }
   }

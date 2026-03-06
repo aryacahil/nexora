@@ -3,18 +3,18 @@ import 'package:flutter/material.dart';
 import '../core/colors.dart';
 import '../services/auth_service.dart';
 import 'dashboard/dashboard_screen.dart';
-import 'register_screen.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _RegisterScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmController = TextEditingController();
   final _authService = AuthService();
   bool _isLoading = false;
   String? _errorMessage;
@@ -23,14 +23,18 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _errorMessage = msg);
   }
 
-  Future<void> _loginWithEmail() async {
+  Future<void> _registerWithEmail() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       _showError('Email dan sandi tidak boleh kosong.');
       return;
     }
+    if (_passwordController.text != _confirmController.text) {
+      _showError('Sandi dan konfirmasi sandi tidak cocok.');
+      return;
+    }
     setState(() { _isLoading = true; _errorMessage = null; });
     try {
-      await _authService.loginWithEmail(
+      await _authService.registerWithEmail(
         _emailController.text.trim(),
         _passwordController.text.trim(),
       );
@@ -44,7 +48,7 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  Future<void> _loginWithGoogle() async {
+  Future<void> _registerWithGoogle() async {
     setState(() { _isLoading = true; _errorMessage = null; });
     try {
       final result = await _authService.loginWithGoogle();
@@ -86,7 +90,6 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Logo
                   Container(
                     width: 80, height: 80,
                     decoration: BoxDecoration(
@@ -104,16 +107,17 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  Text('MARGA VOID', style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900, fontStyle: FontStyle.italic, color: AppColors.primary, letterSpacing: -1)),
-                  Text('JARINGAN EKSKLUSIF', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 4, color: AppColors.textDim)),
+                  Text('DAFTAR AKUN', style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900, fontStyle: FontStyle.italic, color: AppColors.primary, letterSpacing: -1)),
+                  Text('BERGABUNG DENGAN MARGA VOID', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 2, color: AppColors.textDim)),
                   const SizedBox(height: 48),
 
                   _buildTextField('Email', controller: _emailController),
                   const SizedBox(height: 16),
                   _buildTextField('Sandi', controller: _passwordController, obscureText: true),
                   const SizedBox(height: 16),
+                  _buildTextField('Konfirmasi Sandi', controller: _confirmController, obscureText: true),
+                  const SizedBox(height: 16),
 
-                  // Error message
                   if (_errorMessage != null)
                     Container(
                       padding: const EdgeInsets.all(12),
@@ -132,7 +136,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       : Column(
                           children: [
                             InkWell(
-                              onTap: _loginWithEmail,
+                              onTap: _registerWithEmail,
                               child: Container(
                                 width: double.infinity,
                                 padding: const EdgeInsets.symmetric(vertical: 16),
@@ -142,7 +146,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   boxShadow: [BoxShadow(color: Colors.purple.withValues(alpha: 0.3), blurRadius: 15, offset: const Offset(0, 5))],
                                 ),
                                 alignment: Alignment.center,
-                                child: const Text('MASUK', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 2)),
+                                child: const Text('DAFTAR', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 2)),
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -160,7 +164,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             const SizedBox(height: 16),
 
                             InkWell(
-                              onTap: _loginWithGoogle,
+                              onTap: _registerWithGoogle,
                               child: Container(
                                 width: double.infinity,
                                 padding: const EdgeInsets.symmetric(vertical: 14),
@@ -174,7 +178,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   children: [
                                     Image.network('https://www.google.com/favicon.ico', width: 20, height: 20),
                                     const SizedBox(width: 10),
-                                    Text('Masuk dengan Google', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textMain, fontSize: 14)),
+                                    Text('Daftar dengan Google', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textMain, fontSize: 14)),
                                   ],
                                 ),
                               ),
@@ -184,9 +188,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   const SizedBox(height: 24),
                   GestureDetector(
-                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterScreen())),
+                    onTap: () => Navigator.pop(context),
                     child: Text(
-                      'Belum punya akun? Daftar sekarang',
+                      'Sudah punya akun? Masuk',
                       style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.primary, decoration: TextDecoration.underline),
                     ),
                   ),

@@ -1,40 +1,51 @@
 import 'package:flutter/material.dart';
-import 'core/colors.dart'; // Import konfigurasi warna
-import 'screens/login_screen.dart'; // Import layar login sebagai start-up
+import 'package:firebase_core/firebase_core.dart';
+import 'core/app_themes.dart';
+import 'core/theme_provider.dart';
+import 'screens/login_screen.dart';
 
-void main() {
-  // Fungsi utama untuk menjalankan aplikasi
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(const MargaVoidApp());
 }
 
-class MargaVoidApp extends StatelessWidget {
+class MargaVoidApp extends StatefulWidget {
   const MargaVoidApp({super.key});
+
+  @override
+  State<MargaVoidApp> createState() => _MargaVoidAppState();
+}
+
+class _MargaVoidAppState extends State<MargaVoidApp> {
+  final ThemeProvider _themeProvider = ThemeProvider.instance;
+
+  @override
+  void initState() {
+    super.initState();
+    _themeProvider.addListener(_onThemeChange);
+  }
+
+  @override
+  void dispose() {
+    _themeProvider.removeListener(_onThemeChange);
+    super.dispose();
+  }
+
+  void _onThemeChange() {
+    if (mounted) setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      // Judul aplikasi (terlihat di task manager)
       title: 'Marga Void',
-      
-      // Menghilangkan tulisan "DEBUG" di aplikasi
       debugShowCheckedModeBanner: false,
-      
-      // Konfigurasi Tema Global
-      theme: ThemeData(
-        // Menggunakan warna latar belakang dari AppColors
-        scaffoldBackgroundColor: AppColors.bg,
-        
-        // Warna utama aplikasi
-        primaryColor: AppColors.primary,
-        
-        // Konfigurasi font (pastikan font ini terdaftar di pubspec.yaml jika pakai custom)
-        fontFamily: 'Roboto', 
-        
-        // Mengaktifkan Material 3 untuk desain yang lebih modern
-        useMaterial3: true,
-      ),
-      
-      // Menentukan layar utama yang pertama kali dibuka
+      theme: AppThemes.light,
+      darkTheme: AppThemes.dark,
+      themeMode: _themeProvider.isDarkMode
+          ? ThemeMode.dark
+          : ThemeMode.light,
       home: const LoginScreen(),
     );
   }

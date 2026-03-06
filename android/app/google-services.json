@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "993695196700",
+    "project_id": "margavoid-f30bd",
+    "storage_bucket": "margavoid-f30bd.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:993695196700:android:7345d11152f15b9fbd61d9",
+        "android_client_info": {
+          "package_name": "com.example.nexora"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "993695196700-83pirfubc9t0c0brlho09bt9sul9td81.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCGfyFxFZIU1Bme46_Y3-pdrillPBACl8c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "993695196700-83pirfubc9t0c0brlho09bt9sul9td81.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
