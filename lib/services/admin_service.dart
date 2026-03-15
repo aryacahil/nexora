@@ -120,8 +120,8 @@ class AdminService {
     await _db.collection('rules').doc(id).update({
       'title': title,
       'content': content,
-      if (imageBase64 != null) 'imageBase64': imageBase64,
-      if (link != null) 'link': link,
+      'imageBase64': ?imageBase64,
+      'link': ?link,
     });
   }
 
@@ -202,8 +202,8 @@ class AdminService {
     await _db.collection('announcements').doc(id).update({
       'title': title,
       'content': content,
-      if (imageBase64 != null) 'imageBase64': imageBase64,
-      if (link != null) 'link': link,
+      'imageBase64': ?imageBase64,
+      'link': ?link,
     });
   }
 

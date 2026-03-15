@@ -6,6 +6,7 @@ import 'forum/channel_list.dart';
 import 'member_grid.dart';
 import 'game/russian_roulette.dart';
 import 'game/uno/uno_page.dart';
+import 'game/werewolf_page.dart';
 import '../../../core/colors.dart';
 import '../../../services/user_service.dart';
 import '../../feedback_screen.dart';
@@ -56,8 +57,7 @@ class HomeTabState extends State<HomeTab> {
               child: CircularProgressIndicator(color: AppColors.primary));
         }
 
-        final data =
-            snapshot.data?.data() as Map<String, dynamic>? ?? {};
+        final data = snapshot.data?.data() as Map<String, dynamic>? ?? {};
         final name = data['name'] ?? '';
         final photoBase64 = data['photoBase64'] ?? '';
 
@@ -342,8 +342,7 @@ class HomeTabState extends State<HomeTab> {
     );
   }
 
-  Expanded _buildMenuCard(
-      IconData icon, String label, VoidCallback onTap) {
+  Expanded _buildMenuCard(IconData icon, String label, VoidCallback onTap) {
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
@@ -411,8 +410,7 @@ class HomeTabState extends State<HomeTab> {
                 Text(desc,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                        fontSize: 11, color: AppColors.textDim)),
+                    style: TextStyle(fontSize: 11, color: AppColors.textDim)),
                 if (time.isNotEmpty) ...[
                   const SizedBox(height: 8),
                   Text(
@@ -478,8 +476,7 @@ class HomeTabState extends State<HomeTab> {
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(
-                    child: CircularProgressIndicator(
-                        color: AppColors.primary));
+                    child: CircularProgressIndicator(color: AppColors.primary));
               }
               if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                 return Center(
@@ -497,14 +494,14 @@ class HomeTabState extends State<HomeTab> {
                 itemCount: rules.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 12),
                 itemBuilder: (context, index) {
-                  final r =
-                      rules[index].data() as Map<String, dynamic>;
+                  final r = rules[index].data() as Map<String, dynamic>;
                   return _buildRuleTile(
                     context,
                     title: r['title'] ?? '',
                     content: r['content'] ?? '',
                     imageBase64: r['imageBase64'] ?? '',
                     link: r['link'] ?? '',
+                    iconName: r['icon'] ?? '',
                   );
                 },
               );
@@ -520,8 +517,7 @@ class HomeTabState extends State<HomeTab> {
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(
-                    child: CircularProgressIndicator(
-                        color: AppColors.primary));
+                    child: CircularProgressIndicator(color: AppColors.primary));
               }
               if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                 return Center(
@@ -538,7 +534,7 @@ class HomeTabState extends State<HomeTab> {
   }
 
   // ═══════════════════════════════════════════════════════════════
-  // GAME VIEW — tambahkan game baru di sini
+  // GAME VIEW
   // ═══════════════════════════════════════════════════════════════
 
   Widget _buildGameView() {
@@ -555,9 +551,7 @@ class HomeTabState extends State<HomeTab> {
           subtitle: 'Uji nyalimu bersama teman-teman!',
           onTap: () => Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (_) => const RussianRoulettePage(),
-            ),
+            MaterialPageRoute(builder: (_) => const RussianRoulettePage()),
           ),
         ),
 
@@ -577,16 +571,33 @@ class HomeTabState extends State<HomeTab> {
           badge: 'NEW',
           onTap: () => Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (_) => const UnoPage(),
-            ),
+            MaterialPageRoute(builder: (_) => const UnoPage()),
+          ),
+        ),
+
+        const SizedBox(height: 16),
+
+        // ── WEREWOLF ──────────────────────────────────────
+        _buildGameCard(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF1A1A2E), Color(0xFF6B21A8)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          glowColor: Colors.deepPurple,
+          icon: Icons.pets,                          // ← icon, bukan emoji
+          title: 'WEREWOLF',
+          subtitle: '4–12 pemain • 12 role unik • Turn-based realtime',
+          badge: 'NEW',
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => WerewolfPage()),
           ),
         ),
       ],
     );
   }
 
-  /// Card game — tap langsung masuk ke game
   Widget _buildGameCard({
     required LinearGradient gradient,
     required Color glowColor,
@@ -666,8 +677,7 @@ class HomeTabState extends State<HomeTab> {
                   const SizedBox(height: 6),
                   Text(
                     subtitle,
-                    style: const TextStyle(
-                        color: Colors.white70, fontSize: 11),
+                    style: const TextStyle(color: Colors.white70, fontSize: 11),
                   ),
                 ],
               ),
@@ -680,6 +690,7 @@ class HomeTabState extends State<HomeTab> {
       ),
     );
   }
+
   Widget _buildDonasiView() {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
@@ -732,8 +743,8 @@ class HomeTabState extends State<HomeTab> {
                 children: [
                   if (imageBase64.isNotEmpty)
                     ClipRRect(
-                      borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(20)),
+                      borderRadius:
+                          const BorderRadius.vertical(top: Radius.circular(20)),
                       child: Image.memory(
                         base64Decode(imageBase64),
                         width: double.infinity,
@@ -808,8 +819,8 @@ class HomeTabState extends State<HomeTab> {
                                       'Bank', bank, Icons.account_balance),
                                 if (noRek.isNotEmpty) ...[
                                   const SizedBox(height: 8),
-                                  _buildRekeningRow('No. Rekening', noRek,
-                                      Icons.credit_card),
+                                  _buildRekeningRow(
+                                      'No. Rekening', noRek, Icons.credit_card),
                                 ],
                                 if (atasNama.isNotEmpty) ...[
                                   const SizedBox(height: 8),
@@ -900,13 +911,51 @@ class HomeTabState extends State<HomeTab> {
     );
   }
 
+  // ── Rule Tile ─────────────────────────────────────────────────
+  // Field Firestore yang dibaca:
+  //   title       : String  — judul rule (wajib)
+  //   content     : String  — isi teks
+  //   imageBase64 : String  — gambar opsional
+  //   link        : String  — URL opsional
+  //   icon        : String  — nama icon, contoh: 'info', 'warning',
+  //                           'rule', 'star', 'lock', 'check', 'flag'
+  //   order       : int     — urutan tampil
+  // ─────────────────────────────────────────────────────────────
+
+  /// Konversi string dari Firestore ke IconData.
+  /// Tambahkan case sesuai kebutuhan admin.
+  IconData _ruleIconFromName(String name) {
+    switch (name.toLowerCase().trim()) {
+      case 'info':        return Icons.info_outline;
+      case 'warning':     return Icons.warning_amber_outlined;
+      case 'rule':        return Icons.gavel;
+      case 'star':        return Icons.star_outline;
+      case 'lock':        return Icons.lock_outline;
+      case 'check':       return Icons.check_circle_outline;
+      case 'flag':        return Icons.flag_outlined;
+      case 'heart':       return Icons.favorite_outline;
+      case 'shield':      return Icons.shield_outlined;
+      case 'people':      return Icons.people_outline;
+      case 'book':        return Icons.menu_book;
+      case 'chat':        return Icons.chat_bubble_outline;
+      case 'banned':      return Icons.block;
+      case 'money':       return Icons.attach_money;
+      case 'time':        return Icons.access_time;
+      case 'pin':         return Icons.push_pin_outlined;
+      default:            return Icons.article_outlined;
+    }
+  }
+
   Widget _buildRuleTile(
     BuildContext context, {
     required String title,
     required String content,
     required String imageBase64,
     required String link,
+    String iconName = '',
   }) {
+    final leadingIcon = _ruleIconFromName(iconName);
+
     return Container(
       decoration: BoxDecoration(
         color: AppColors.card,
@@ -921,6 +970,16 @@ class HomeTabState extends State<HomeTab> {
           collapsedShape: const RoundedRectangleBorder(),
           backgroundColor: AppColors.card,
           collapsedBackgroundColor: AppColors.card,
+          // ── Leading icon dari Firestore ──────────────
+          leading: Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(leadingIcon, color: AppColors.accent, size: 18),
+          ),
           title: Text(title,
               style: TextStyle(
                   fontSize: 14,
@@ -966,12 +1025,10 @@ class HomeTabState extends State<HomeTab> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 14, vertical: 8),
                         decoration: BoxDecoration(
-                          color:
-                              AppColors.primary.withValues(alpha: 0.08),
+                          color: AppColors.primary.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                              color: AppColors.primary
-                                  .withValues(alpha: 0.3)),
+                              color: AppColors.primary.withValues(alpha: 0.3)),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,

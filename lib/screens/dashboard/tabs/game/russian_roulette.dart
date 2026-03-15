@@ -306,6 +306,23 @@ class _RussianRoulettePageState extends State<RussianRoulettePage> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(24, 24, 24, 120),
           children: [
+            // ── Tombol Kembali ── (DITAMBAHKAN)
+            GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Row(
+                children: [
+                  Icon(Icons.chevron_left, color: AppColors.accent, size: 22),
+                  Text('KEMBALI',
+                      style: TextStyle(
+                          color: AppColors.accent,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+
             // Header
             Container(
               padding: const EdgeInsets.all(28),
@@ -771,14 +788,10 @@ class _RoomScreenState extends State<_RoomScreen> with TickerProviderStateMixin 
                 widget.myUid &&
             isAlive;
 
-        // Ambil 1 entri log terakhir dari Firestore (realtime, semua pemain lihat sama)
         final gameLog = List<String>.from(data['gameLog'] ?? []);
         final latestLog = gameLog.isNotEmpty ? gameLog.last : '';
 
-        // ── Cek jika game sedang berlangsung tapi semua pemain keluar ──
-        // (players list kosong saat status masih 'playing')
         if (status == 'playing' && players.isEmpty) {
-          // Otomatis finish — hapus room
           widget.gameService.forceFinishRoom(widget.roomCode);
         }
 
@@ -942,7 +955,6 @@ class _RoomScreenState extends State<_RoomScreen> with TickerProviderStateMixin 
                       ),
                       child: Column(
                         children: [
-                          // Pistol dengan recoil + glow + pulse
                           AnimatedBuilder(
                             animation: Listenable.merge(
                                 [_recoilAnimation, _glowAnimation]),
@@ -974,7 +986,6 @@ class _RoomScreenState extends State<_RoomScreen> with TickerProviderStateMixin 
 
                           const SizedBox(height: 14),
 
-                          // Status badge
                           AnimatedSwitcher(
                             duration: const Duration(milliseconds: 300),
                             child: Container(
@@ -1026,7 +1037,6 @@ class _RoomScreenState extends State<_RoomScreen> with TickerProviderStateMixin 
                             ),
                           ),
 
-                          // ── Log Display (1 entri terakhir, realtime dari Firestore) ──
                           if (latestLog.isNotEmpty) ...[
                             const SizedBox(height: 16),
                             _buildLatestLog(latestLog),
@@ -1036,7 +1046,6 @@ class _RoomScreenState extends State<_RoomScreen> with TickerProviderStateMixin 
                     ),
                     const SizedBox(height: 16),
 
-                    // Tombol tembak
                     if (isMyTurn)
                       GestureDetector(
                         onTap: _isShooting ? null : _pullTrigger,
