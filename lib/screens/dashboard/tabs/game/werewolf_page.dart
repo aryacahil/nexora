@@ -6,7 +6,7 @@ import '../../../../services/user_service.dart';
 import '../../../../services/werewolf_service.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TTS Narrator
+// TTS Narrator (tidak berubah)
 // ─────────────────────────────────────────────────────────────────────────────
 
 class WerewolfNarrator {
@@ -23,107 +23,65 @@ class WerewolfNarrator {
   }
 
   static Future<void> speak(String text) async {
-    await init();
-    await _tts.stop();
-    await _tts.speak(text);
+    await init(); await _tts.stop(); await _tts.speak(text);
   }
+  static Future<void> stop() async => await _tts.stop();
 
-  static Future<void> stop() async {
-    await _tts.stop();
-  }
-
-  // ── Narasi per fase ──────────────────────────────────────────
-  static Future<void> onNight(int round) => speak(
-    'Malam ke $round telah tiba. Seluruh penduduk desa tertidur. '
-    'Para werewolf terbangun dari kegelapan.',
-  );
-
-  static Future<void> onDay(int round) => speak(
-    'Hari ke $round. Matahari terbit. '
-    'Penduduk desa berkumpul untuk berdiskusi.',
-  );
-
-  static Future<void> onVoting() => speak(
-    'Saatnya pemungutan suara. '
-    'Pilih siapa yang paling mencurigakan di antara kalian.',
-  );
-
-  static Future<void> onPlayerDied(String name) => speak(
-    '$name ditemukan tewas malam ini.',
-  );
-
-  static Future<void> onPlayerVotedOut(String name) => speak(
-    '$name dieksekusi oleh warga desa.',
-  );
-
-  static Future<void> onNobodyDied() => speak(
-    'Sunyi. Tidak ada korban malam ini.',
-  );
-
-  static Future<void> onVillageWin() => speak(
-    'Selamat! Seluruh werewolf telah dibasmi. Desa selamat!',
-  );
-
-  static Future<void> onWolfWin() => speak(
-    'Werewolf menguasai desa. Semua penduduk telah binasa.',
-  );
-
-  static Future<void> onHunterRevenge() => speak(
-    'Hunter gugur! Ia mengangkat senjata terakhirnya untuk membalas dendam.',
-  );
-
-  static Future<void> onWolfAttack() => speak(
-    'Para werewolf menyerang di kegelapan malam.',
-  );
-
-  static Future<void> onGameStart() => speak(
-    'Permainan dimulai. Semoga keberuntungan berpihak padamu.',
-  );
-
-  static Future<void> onJesterWin() => speak(
-    'Jester berhasil dieksekusi oleh warga. Jester menang!',
-  );
+  static Future<void> onNight(int round)    => speak('Malam ke $round telah tiba. Seluruh penduduk desa tertidur. Para werewolf terbangun dari kegelapan.');
+  static Future<void> onDay(int round)      => speak('Hari ke $round. Matahari terbit. Penduduk desa berkumpul untuk berdiskusi.');
+  static Future<void> onVoting()            => speak('Saatnya pemungutan suara. Pilih siapa yang paling mencurigakan di antara kalian.');
+  static Future<void> onPlayerDied(String name)      => speak('$name ditemukan tewas malam ini.');
+  static Future<void> onPlayerVotedOut(String name)  => speak('$name dieksekusi oleh warga desa.');
+  static Future<void> onNobodyDied()        => speak('Sunyi. Tidak ada korban malam ini.');
+  static Future<void> onVillageWin()        => speak('Selamat! Seluruh werewolf telah dibasmi. Desa selamat!');
+  static Future<void> onWolfWin()           => speak('Werewolf menguasai desa. Semua penduduk telah binasa.');
+  static Future<void> onHunterRevenge()     => speak('Hunter gugur! Ia mengangkat senjata terakhirnya untuk membalas dendam.');
+  static Future<void> onWolfAttack()        => speak('Para werewolf menyerang di kegelapan malam.');
+  static Future<void> onGameStart()         => speak('Permainan dimulai. Semoga keberuntungan berpihak padamu.');
+  static Future<void> onJesterWin()         => speak('Jester berhasil dieksekusi oleh warga. Jester menang!');
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Role Icon Helper
+// Role Icon Helper (tidak berubah)
 // ─────────────────────────────────────────────────────────────────────────────
 
 IconData _roleIconData(String role) {
   switch (role) {
-    case WRole.werewolf:   return Icons.pets;
-    case WRole.alphaWolf:  return Icons.crisis_alert;
-    case WRole.lycan:      return Icons.masks;
-    case WRole.villager:   return Icons.person;
-    case WRole.seer:       return Icons.visibility;
-    case WRole.doctor:     return Icons.medical_services;
-    case WRole.hunter:     return Icons.gps_fixed;
-    case WRole.witch:      return Icons.science;
-    case WRole.bodyguard:  return Icons.shield;
-    case WRole.mayor:      return Icons.star;
-    case WRole.cupid:      return Icons.favorite;
-    case WRole.jester:     return Icons.sentiment_very_dissatisfied;
-    default:               return Icons.help_outline;
+    case WRole.werewolf:  return Icons.pets;
+    case WRole.alphaWolf: return Icons.crisis_alert;
+    case WRole.lycan:     return Icons.masks;
+    case WRole.villager:  return Icons.person;
+    case WRole.seer:      return Icons.visibility;
+    case WRole.doctor:    return Icons.medical_services;
+    case WRole.hunter:    return Icons.gps_fixed;
+    case WRole.witch:     return Icons.science;
+    case WRole.bodyguard: return Icons.shield;
+    case WRole.mayor:     return Icons.star;
+    case WRole.cupid:     return Icons.favorite;
+    case WRole.jester:    return Icons.sentiment_very_dissatisfied;
+    default:              return Icons.help_outline;
   }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Lobby
+// Lobby — layout mengikuti UNO
 // ─────────────────────────────────────────────────────────────────────────────
 
 class WerewolfPage extends StatefulWidget {
   const WerewolfPage({super.key});
-
   @override
   State<WerewolfPage> createState() => _WerewolfPageState();
 }
 
 class _WerewolfPageState extends State<WerewolfPage> {
-  final WerewolfService _svc = WerewolfService();
-  final UserService _userService = UserService();
-  String _myName = '';
-  bool _isLoading = false;
+  final WerewolfService _svc         = WerewolfService();
+  final UserService     _userService = UserService();
+  String  _myName   = '';
+  bool    _isLoading = false;
   String? _roomCode;
+
+  static const _purple     = Color(0xFF6B21A8);
+  static const _purpleDark = Color(0xFF1A1A2E);
 
   @override
   void initState() {
@@ -176,31 +134,32 @@ class _WerewolfPageState extends State<WerewolfPage> {
         backgroundColor: AppColors.card,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text('Masukkan Kode Room',
-            style: TextStyle(fontWeight: FontWeight.w900, color: AppColors.primary)),
+          style: TextStyle(fontWeight: FontWeight.w900, color: AppColors.primary)),
         content: TextField(
           controller: ctrl,
           textCapitalization: TextCapitalization.characters,
-          style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 2),
+          style: const TextStyle(fontWeight: FontWeight.bold,
+            letterSpacing: 2, fontSize: 18),
           decoration: InputDecoration(
             hintText: 'Contoh: AB12C',
-            hintStyle: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.normal),
-            filled: true,
-            fillColor: AppColors.bg,
+            hintStyle: TextStyle(color: AppColors.textDim,
+              fontWeight: FontWeight.normal, letterSpacing: 0),
+            filled: true, fillColor: AppColors.bg,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: AppColors.border)),
+              borderSide: BorderSide(color: AppColors.border)),
             enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: AppColors.border)),
+              borderSide: BorderSide(color: AppColors.border)),
             focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: AppColors.accent, width: 2)),
+              borderSide: BorderSide(color: AppColors.accent, width: 2)),
           ),
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context),
-              child: Text('Batal', style: TextStyle(color: AppColors.textDim))),
+            child: Text('Batal', style: TextStyle(color: AppColors.textDim))),
           TextButton(
             onPressed: () { Navigator.pop(context); _joinRoom(ctrl.text); },
             child: Text('Gabung',
-                style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+              style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -235,218 +194,330 @@ class _WerewolfPageState extends State<WerewolfPage> {
       backgroundColor: AppColors.bg,
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(24, 24, 24, 120),
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
           children: [
+            // ── Back ─────────────────────────────────────────────────
             GestureDetector(
               onTap: () => Navigator.pop(context),
               child: Row(children: [
-                Icon(Icons.chevron_left, color: AppColors.accent, size: 22),
+                Icon(Icons.chevron_left, color: AppColors.accent, size: 20),
                 Text('KEMBALI', style: TextStyle(
-                    color: AppColors.accent, fontSize: 10,
-                    fontWeight: FontWeight.bold, letterSpacing: 1)),
+                  color: AppColors.accent, fontSize: 10,
+                  fontWeight: FontWeight.bold, letterSpacing: 1.5)),
               ]),
             ),
             const SizedBox(height: 20),
 
-            Container(
-              padding: const EdgeInsets.all(28),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                    colors: [Color(0xFF1A1A2E), Color(0xFF4A1942)],
-                    begin: Alignment.topLeft, end: Alignment.bottomRight),
-                borderRadius: BorderRadius.circular(32),
-                boxShadow: [BoxShadow(
-                    color: Colors.deepPurple.withValues(alpha: 0.4),
-                    blurRadius: 24, offset: const Offset(0, 10))],
-              ),
-              child: Column(children: [
-                Container(
-                  width: 80, height: 80,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.pets, color: Colors.white, size: 44),
-                ),
-                const SizedBox(height: 16),
-                const Text('WEREWOLF',
-                    style: TextStyle(color: Colors.white, fontSize: 28,
-                        fontWeight: FontWeight.w900, letterSpacing: 3)),
-                const SizedBox(height: 6),
-                Text('4–12 pemain  •  ${_myName.isNotEmpty ? _myName : "..."}',
-                    style: const TextStyle(color: Colors.white54, fontSize: 12)),
-              ]),
-            ),
-            const SizedBox(height: 24),
+            // ── Header card ───────────────────────────────────────────
+            _buildHeader(),
+            const SizedBox(height: 20),
 
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                  color: AppColors.card, borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.border)),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('SEMUA ROLE', style: TextStyle(fontSize: 10,
-                    fontWeight: FontWeight.w900, letterSpacing: 2,
-                    color: AppColors.textDim)),
-                const SizedBox(height: 14),
-                Wrap(spacing: 8, runSpacing: 8, children: [
-                  WRole.werewolf, WRole.alphaWolf, WRole.lycan,
-                  WRole.villager, WRole.seer, WRole.doctor,
-                  WRole.hunter, WRole.witch, WRole.bodyguard,
-                  WRole.mayor, WRole.cupid, WRole.jester,
-                ].map((r) => GestureDetector(
-                  onTap: () => _showRoleDetail(r),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                        color: _roleColor(r).withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: _roleColor(r).withValues(alpha: 0.3))),
-                    child: Row(mainAxisSize: MainAxisSize.min, children: [
-                      Icon(_roleIconData(r), size: 14, color: _roleColor(r)),
-                      const SizedBox(width: 6),
-                      Text(WRole.label(r),
-                          style: TextStyle(fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: _roleColor(r))),
-                    ]),
-                  ),
-                )).toList()),
-                const SizedBox(height: 8),
-                Text('Tap role untuk melihat deskripsi',
-                    style: TextStyle(fontSize: 10, color: AppColors.textDim)),
-              ]),
-            ),
-            const SizedBox(height: 24),
-
+            // ── Action buttons ────────────────────────────────────────
             _isLoading
-                ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
-                : Column(children: [
-                    _actionBtn(
-                      label: 'BUAT ROOM BARU',
-                      icon: Icons.add_circle_outline,
-                      gradient: const LinearGradient(colors: [Color(0xFF1A1A2E), Color(0xFF6B21A8)]),
-                      onTap: _createRoom,
-                    ),
-                    const SizedBox(height: 12),
-                    _actionBtn(
-                      label: 'GABUNG ROOM',
-                      icon: Icons.login,
-                      color: AppColors.card,
-                      borderColor: Colors.deepPurple.withValues(alpha: 0.5),
-                      textColor: Colors.deepPurple.shade300,
-                      onTap: _showJoinDialog,
-                    ),
-                  ]),
-            const SizedBox(height: 32),
+                ? const Center(child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    child: CircularProgressIndicator(color: _purple)))
+                : _buildActionButtons(),
+            const SizedBox(height: 24),
 
-            Text('ROOM TERSEDIA', style: TextStyle(
-                fontSize: 10, fontWeight: FontWeight.w900,
-                letterSpacing: 2, color: AppColors.textDim)),
-            const SizedBox(height: 12),
+            // ── Roles ─────────────────────────────────────────────────
+            _buildRoles(),
+            const SizedBox(height: 24),
 
-            StreamBuilder<QuerySnapshot>(
-              stream: _svc.getOpenRooms(),
-              builder: (ctx, snap) {
-                if (snap.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator(color: AppColors.primary));
-                }
-                if (!snap.hasData || snap.data!.docs.isEmpty) {
-                  return _emptyRooms();
-                }
-                return ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: snap.data!.docs.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 10),
-                  itemBuilder: (ctx, i) {
-                    final r = snap.data!.docs[i].data() as Map<String, dynamic>;
-                    final code = r['code'] ?? '';
-                    final players = List.from(r['players'] ?? []);
-                    final host = players.isNotEmpty ? players.first['name'] : '?';
-                    final isFull = players.length >= 12;
-                    return GestureDetector(
-                      onTap: isFull ? null : () => _joinRoom(code),
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                            color: AppColors.card,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: isFull
-                                ? AppColors.border
-                                : Colors.deepPurple.withValues(alpha: 0.3))),
-                        child: Row(children: [
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                                color: Colors.deepPurple.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(12)),
-                            child: Icon(Icons.pets,
-                                color: isFull ? AppColors.textDim : Colors.deepPurple.shade300,
-                                size: 22),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                            Text('Room: $code',
-                                style: TextStyle(fontSize: 14,
-                                    fontWeight: FontWeight.w900, color: AppColors.textMain)),
-                            Text('Host: $host  •  ${players.length}/12 pemain',
-                                style: TextStyle(fontSize: 11, color: AppColors.textDim)),
-                          ])),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                                color: isFull
-                                    ? AppColors.border
-                                    : Colors.deepPurple.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(20)),
-                            child: Text(isFull ? 'PENUH' : 'GABUNG',
-                                style: TextStyle(fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                    color: isFull ? AppColors.textDim : Colors.deepPurple.shade300)),
-                          ),
-                        ]),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
+            // ── Room list ─────────────────────────────────────────────
+            _buildSectionLabel('ROOM TERSEDIA'),
+            const SizedBox(height: 10),
+            _buildRoomList(),
           ],
         ),
       ),
     );
   }
 
+  // ── Header ────────────────────────────────────────────────────────────────
+
+  Widget _buildHeader() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
+      decoration: BoxDecoration(
+        color: _purpleDark,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.deepPurple.withValues(alpha: 0.2)),
+        boxShadow: [BoxShadow(
+          color: Colors.deepPurple.withValues(alpha: 0.15),
+          blurRadius: 24, offset: const Offset(0, 8))],
+      ),
+      child: Row(children: [
+        // Wolf icon
+        Container(
+          width: 72, height: 72,
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.1),
+            shape: BoxShape.circle),
+          child: const Icon(Icons.pets, color: Colors.white, size: 38)),
+        const SizedBox(width: 20),
+        Expanded(child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('WEREWOLF', style: TextStyle(
+              color: Colors.white, fontSize: 28,
+              fontWeight: FontWeight.w900, letterSpacing: 3)),
+            const SizedBox(height: 6),
+            Container(height: 2, width: 48,
+              decoration: BoxDecoration(
+                color: Colors.deepPurple.shade400,
+                borderRadius: BorderRadius.circular(2))),
+            const SizedBox(height: 8),
+            Row(children: [
+              Icon(Icons.person_outline, size: 12, color: Colors.white38),
+              const SizedBox(width: 5),
+              Text(_myName.isNotEmpty ? _myName : 'Memuat...',
+                style: const TextStyle(fontSize: 11, color: Colors.white38)),
+            ]),
+          ],
+        )),
+      ]),
+    );
+  }
+
+  // ── Action Buttons ────────────────────────────────────────────────────────
+
+  Widget _buildActionButtons() {
+    return Row(children: [
+      Expanded(
+        child: GestureDetector(
+          onTap: _createRoom,
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 15),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [_purpleDark, _purple]),
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: [BoxShadow(
+                color: Colors.deepPurple.withValues(alpha: 0.35),
+                blurRadius: 12, offset: const Offset(0, 5))],
+            ),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.add, color: Colors.white, size: 18),
+                SizedBox(width: 8),
+                Text('BUAT ROOM', style: TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.w900,
+                  fontSize: 13, letterSpacing: 1.5)),
+              ],
+            ),
+          ),
+        ),
+      ),
+      const SizedBox(width: 10),
+      Expanded(
+        child: GestureDetector(
+          onTap: _showJoinDialog,
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 15),
+            decoration: BoxDecoration(
+              color: AppColors.card,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: Colors.deepPurple.withValues(alpha: 0.35)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.login, color: Colors.deepPurple.shade300, size: 18),
+                const SizedBox(width: 8),
+                Text('GABUNG', style: TextStyle(
+                  color: Colors.deepPurple.shade300,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 13, letterSpacing: 1.5)),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ]);
+  }
+
+  // ── Roles ─────────────────────────────────────────────────────────────────
+
+  Widget _buildRoles() {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.border)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        _buildSectionLabel('SEMUA ROLE'),
+        const SizedBox(height: 14),
+        Wrap(spacing: 8, runSpacing: 8, children: [
+          WRole.werewolf, WRole.alphaWolf, WRole.lycan,
+          WRole.villager, WRole.seer, WRole.doctor,
+          WRole.hunter, WRole.witch, WRole.bodyguard,
+          WRole.mayor, WRole.cupid, WRole.jester,
+        ].map((r) => GestureDetector(
+          onTap: () => _showRoleDetail(r),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: _roleColor(r).withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: _roleColor(r).withValues(alpha: 0.3))),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              Icon(_roleIconData(r), size: 13, color: _roleColor(r)),
+              const SizedBox(width: 5),
+              Text(WRole.label(r), style: TextStyle(
+                fontSize: 11, fontWeight: FontWeight.bold,
+                color: _roleColor(r))),
+            ]),
+          ),
+        )).toList()),
+        const SizedBox(height: 8),
+        Text('Tap role untuk melihat deskripsi',
+          style: TextStyle(fontSize: 10, color: AppColors.textDim)),
+      ]),
+    );
+  }
+
+  // ── Room List ─────────────────────────────────────────────────────────────
+
+  Widget _buildRoomList() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: _svc.getOpenRooms(),
+      builder: (ctx, snap) {
+        if (snap.connectionState == ConnectionState.waiting) {
+          return const Center(child: Padding(
+            padding: EdgeInsets.all(20),
+            child: CircularProgressIndicator(
+              color: _purple, strokeWidth: 2)));
+        }
+        if (!snap.hasData || snap.data!.docs.isEmpty) {
+          return Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppColors.card, borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.border)),
+            child: Row(children: [
+              Icon(Icons.search_off, color: AppColors.textDim, size: 20),
+              const SizedBox(width: 12),
+              Text('Belum ada room tersedia.',
+                style: TextStyle(color: AppColors.textDim, fontSize: 13)),
+            ]),
+          );
+        }
+        return ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: snap.data!.docs.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 8),
+          itemBuilder: (ctx, i) {
+            final r       = snap.data!.docs[i].data() as Map<String, dynamic>;
+            final code    = r['code'] ?? '';
+            final players = List.from(r['players'] ?? []);
+            final host    = players.isNotEmpty ? players.first['name'] : '?';
+            final isFull  = players.length >= 12;
+
+            return GestureDetector(
+              onTap: isFull ? null : () => _joinRoom(code),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16, vertical: 13),
+                decoration: BoxDecoration(
+                  color: AppColors.card,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: isFull
+                        ? AppColors.border
+                        : Colors.deepPurple.withValues(alpha: 0.25)),
+                ),
+                child: Row(children: [
+                  // Color pip
+                  Container(
+                    width: 4, height: 36,
+                    decoration: BoxDecoration(
+                      color: isFull
+                          ? AppColors.border : Colors.deepPurple.shade700,
+                      borderRadius: BorderRadius.circular(2))),
+                  const SizedBox(width: 14),
+                  Expanded(child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(code, style: TextStyle(
+                        fontSize: 15, fontWeight: FontWeight.w900,
+                        color: isFull ? AppColors.textDim : AppColors.textMain,
+                        letterSpacing: 2)),
+                      const SizedBox(height: 2),
+                      Text('Host: $host',
+                        style: TextStyle(fontSize: 11,
+                          color: AppColors.textDim)),
+                    ],
+                  )),
+                  // Player count
+                  Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                    Text('${players.length}/12', style: TextStyle(
+                      fontSize: 13, fontWeight: FontWeight.w900,
+                      color: isFull ? AppColors.textDim : AppColors.textMain)),
+                    Text('pemain',
+                      style: TextStyle(fontSize: 9, color: AppColors.textDim)),
+                  ]),
+                  const SizedBox(width: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: isFull
+                          ? AppColors.border
+                          : Colors.deepPurple.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(20)),
+                    child: Text(isFull ? 'PENUH' : 'MASUK',
+                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900,
+                        color: isFull
+                            ? AppColors.textDim : Colors.deepPurple.shade300,
+                        letterSpacing: 1)),
+                  ),
+                ]),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+
   void _showRoleDetail(String role) {
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.card,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (_) => Padding(
         padding: const EdgeInsets.all(24),
-        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+        child: Column(mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
             Container(
               width: 48, height: 48,
               decoration: BoxDecoration(
-                  color: _roleColor(role).withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(14)),
-              child: Icon(_roleIconData(role), color: _roleColor(role), size: 26),
-            ),
+                color: _roleColor(role).withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(14)),
+              child: Icon(_roleIconData(role),
+                color: _roleColor(role), size: 26)),
             const SizedBox(width: 12),
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(WRole.label(role),
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900,
-                      color: _roleColor(role))),
+              Text(WRole.label(role), style: TextStyle(
+                fontSize: 18, fontWeight: FontWeight.w900,
+                color: _roleColor(role))),
               Text(_roleTeam(role),
-                  style: TextStyle(fontSize: 11, color: AppColors.textDim)),
+                style: TextStyle(fontSize: 11, color: AppColors.textDim)),
             ]),
           ]),
           const SizedBox(height: 16),
-          Text(WRole.description(role),
-              style: TextStyle(fontSize: 13, color: AppColors.textDim, height: 1.6)),
+          Text(WRole.description(role), style: TextStyle(
+            fontSize: 13, color: AppColors.textDim, height: 1.6)),
           const SizedBox(height: 8),
         ]),
       ),
@@ -460,62 +531,21 @@ class _WerewolfPageState extends State<WerewolfPage> {
   }
 
   Color _roleColor(String role) {
-    if (WRole.isWolf(role)) return Colors.red.shade400;
-    if (role == WRole.seer) return Colors.purple.shade300;
-    if (role == WRole.doctor) return Colors.green.shade400;
-    if (role == WRole.hunter) return Colors.orange.shade400;
-    if (role == WRole.witch) return Colors.teal.shade300;
-    if (role == WRole.bodyguard) return Colors.blue.shade400;
-    if (role == WRole.mayor) return Colors.amber.shade400;
-    if (role == WRole.cupid) return Colors.pink.shade400;
-    if (role == WRole.jester) return Colors.lime.shade400;
+    if (WRole.isWolf(role))        return Colors.red.shade400;
+    if (role == WRole.seer)        return Colors.purple.shade300;
+    if (role == WRole.doctor)      return Colors.green.shade400;
+    if (role == WRole.hunter)      return Colors.orange.shade400;
+    if (role == WRole.witch)       return Colors.teal.shade300;
+    if (role == WRole.bodyguard)   return Colors.blue.shade400;
+    if (role == WRole.mayor)       return Colors.amber.shade400;
+    if (role == WRole.cupid)       return Colors.pink.shade400;
+    if (role == WRole.jester)      return Colors.lime.shade400;
     return AppColors.textDim;
   }
 
-  Widget _actionBtn({
-    required String label, required IconData icon, required VoidCallback onTap,
-    LinearGradient? gradient, Color? color, Color? borderColor, Color? textColor,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          gradient: gradient,
-          color: color,
-          borderRadius: BorderRadius.circular(16),
-          border: borderColor != null ? Border.all(color: borderColor) : null,
-          boxShadow: gradient != null ? [BoxShadow(
-              color: Colors.deepPurple.withValues(alpha: 0.3),
-              blurRadius: 15, offset: const Offset(0, 5))] : null,
-        ),
-        alignment: Alignment.center,
-        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Icon(icon, color: textColor ?? Colors.white, size: 20),
-          const SizedBox(width: 10),
-          Text(label, style: TextStyle(
-              color: textColor ?? Colors.white,
-              fontWeight: FontWeight.bold, letterSpacing: 2)),
-        ]),
-      ),
-    );
-  }
-
-  Widget _emptyRooms() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(color: AppColors.card,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border)),
-      child: Row(children: [
-        Icon(Icons.pets, color: Colors.deepPurple.shade200, size: 24),
-        const SizedBox(width: 12),
-        Text('Belum ada room tersedia.',
-            style: TextStyle(color: AppColors.textDim, fontSize: 13)),
-      ]),
-    );
-  }
+  Widget _buildSectionLabel(String label) => Text(label, style: TextStyle(
+    fontSize: 10, fontWeight: FontWeight.w900,
+    letterSpacing: 2.5, color: AppColors.textDim));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
