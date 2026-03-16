@@ -6,7 +6,7 @@ import '../../../../services/user_service.dart';
 import '../../../../services/werewolf_service.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TTS Narrator (tidak berubah)
+// TTS Narrator
 // ─────────────────────────────────────────────────────────────────────────────
 
 class WerewolfNarrator {
@@ -42,7 +42,7 @@ class WerewolfNarrator {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Role Icon Helper (tidak berubah)
+// Role Icon Helper
 // ─────────────────────────────────────────────────────────────────────────────
 
 IconData _roleIconData(String role) {
@@ -64,7 +64,7 @@ IconData _roleIconData(String role) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Lobby — layout mengikuti UNO
+// Lobby
 // ─────────────────────────────────────────────────────────────────────────────
 
 class WerewolfPage extends StatefulWidget {
@@ -196,7 +196,6 @@ class _WerewolfPageState extends State<WerewolfPage> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
           children: [
-            // ── Back ─────────────────────────────────────────────────
             GestureDetector(
               onTap: () => Navigator.pop(context),
               child: Row(children: [
@@ -207,24 +206,16 @@ class _WerewolfPageState extends State<WerewolfPage> {
               ]),
             ),
             const SizedBox(height: 20),
-
-            // ── Header card ───────────────────────────────────────────
             _buildHeader(),
             const SizedBox(height: 20),
-
-            // ── Action buttons ────────────────────────────────────────
             _isLoading
                 ? const Center(child: Padding(
                     padding: EdgeInsets.symmetric(vertical: 16),
                     child: CircularProgressIndicator(color: _purple)))
                 : _buildActionButtons(),
             const SizedBox(height: 24),
-
-            // ── Roles ─────────────────────────────────────────────────
             _buildRoles(),
             const SizedBox(height: 24),
-
-            // ── Room list ─────────────────────────────────────────────
             _buildSectionLabel('ROOM TERSEDIA'),
             const SizedBox(height: 10),
             _buildRoomList(),
@@ -233,8 +224,6 @@ class _WerewolfPageState extends State<WerewolfPage> {
       ),
     );
   }
-
-  // ── Header ────────────────────────────────────────────────────────────────
 
   Widget _buildHeader() {
     return Container(
@@ -248,7 +237,6 @@ class _WerewolfPageState extends State<WerewolfPage> {
           blurRadius: 24, offset: const Offset(0, 8))],
       ),
       child: Row(children: [
-        // Wolf icon
         Container(
           width: 72, height: 72,
           decoration: BoxDecoration(
@@ -279,8 +267,6 @@ class _WerewolfPageState extends State<WerewolfPage> {
       ]),
     );
   }
-
-  // ── Action Buttons ────────────────────────────────────────────────────────
 
   Widget _buildActionButtons() {
     return Row(children: [
@@ -339,8 +325,6 @@ class _WerewolfPageState extends State<WerewolfPage> {
     ]);
   }
 
-  // ── Roles ─────────────────────────────────────────────────────────────────
-
   Widget _buildRoles() {
     return Container(
       padding: const EdgeInsets.all(18),
@@ -380,8 +364,6 @@ class _WerewolfPageState extends State<WerewolfPage> {
       ]),
     );
   }
-
-  // ── Room List ─────────────────────────────────────────────────────────────
 
   Widget _buildRoomList() {
     return StreamBuilder<QuerySnapshot>(
@@ -433,7 +415,6 @@ class _WerewolfPageState extends State<WerewolfPage> {
                         : Colors.deepPurple.withValues(alpha: 0.25)),
                 ),
                 child: Row(children: [
-                  // Color pip
                   Container(
                     width: 4, height: 36,
                     decoration: BoxDecoration(
@@ -454,7 +435,6 @@ class _WerewolfPageState extends State<WerewolfPage> {
                           color: AppColors.textDim)),
                     ],
                   )),
-                  // Player count
                   Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
                     Text('${players.length}/12', style: TextStyle(
                       fontSize: 13, fontWeight: FontWeight.w900,
@@ -485,8 +465,6 @@ class _WerewolfPageState extends State<WerewolfPage> {
       },
     );
   }
-
-  // ── Helpers ───────────────────────────────────────────────────────────────
 
   void _showRoleDetail(String role) {
     showModalBottomSheet(
@@ -575,7 +553,6 @@ class _WerewolfRoomScreenState extends State<WerewolfRoomScreen>
   bool _roleRevealed = false;
   bool _actionDone = false;
 
-  // ── Transisi ──────────────────────────────────────────────────
   String _lastPhase = '';
   int _lastRound = 0;
   String _lastLog = '';
@@ -604,7 +581,6 @@ class _WerewolfRoomScreenState extends State<WerewolfRoomScreen>
     super.dispose();
   }
 
-  // ── Deteksi perubahan fase & trigger TTS ──────────────────────
   void _handlePhaseChange(String newPhase, int newRound, List<String> gameLog) {
     final latestLog = gameLog.isNotEmpty ? gameLog.last : '';
     final phaseChanged = newPhase != _lastPhase;
@@ -624,14 +600,12 @@ class _WerewolfRoomScreenState extends State<WerewolfRoomScreen>
           );
           WerewolfNarrator.onNight(newRound);
           break;
-
         case WPhase.nightResult:
           _triggerTransition(
             label: 'FAJAR TIBA',
             colors: [const Color(0xFF373B44), const Color(0xFF4286f4)],
             icon: Icons.wb_twilight,
           );
-          // Cek apakah ada korban di log terbaru
           final nightLogs = gameLog.where((l) => l.startsWith('MALAM:')).toList();
           if (nightLogs.isNotEmpty) {
             final lastNight = nightLogs.last.replaceAll('MALAM: ', '');
@@ -642,7 +616,6 @@ class _WerewolfRoomScreenState extends State<WerewolfRoomScreen>
             }
           }
           break;
-
         case WPhase.day:
           _triggerTransition(
             label: 'HARI KE-$newRound',
@@ -651,7 +624,6 @@ class _WerewolfRoomScreenState extends State<WerewolfRoomScreen>
           );
           WerewolfNarrator.onDay(newRound);
           break;
-
         case WPhase.voting:
           _triggerTransition(
             label: 'VOTING DIMULAI',
@@ -660,21 +632,18 @@ class _WerewolfRoomScreenState extends State<WerewolfRoomScreen>
           );
           WerewolfNarrator.onVoting();
           break;
-
         case WPhase.voteResult:
           _triggerTransition(
             label: 'HASIL VOTING',
             colors: [const Color(0xFF4A00E0), const Color(0xFF8E2DE2)],
             icon: Icons.balance,
           );
-          // Baca hasil voting dari log
           final voteLogs = gameLog.where((l) => l.startsWith('VOTING:')).toList();
           if (voteLogs.isNotEmpty) {
             final lastVote = voteLogs.last.replaceAll('VOTING: ', '');
             WerewolfNarrator.speak(lastVote);
           }
           break;
-
         case WPhase.hunterRevenge:
           _triggerTransition(
             label: 'HUNTER BALAS DENDAM',
@@ -683,19 +652,16 @@ class _WerewolfRoomScreenState extends State<WerewolfRoomScreen>
           );
           WerewolfNarrator.onHunterRevenge();
           break;
-
         case WPhase.finished:
           _triggerTransition(
             label: 'GAME SELESAI',
             colors: [const Color(0xFF1A1A2E), const Color(0xFF6B21A8)],
             icon: Icons.flag,
           );
-          // Narasi menang/kalah dihandle di _buildFinished saat pertama kali muncul
           break;
       }
     }
 
-    // Narasi log baru (khusus malam — serangan wolf)
     if (newLogEntry && newPhase == WPhase.night) {
       if (latestLog.contains('menyerang') || latestLog.contains('memilih korban')) {
         WerewolfNarrator.onWolfAttack();
@@ -745,11 +711,9 @@ class _WerewolfRoomScreenState extends State<WerewolfRoomScreen>
         final round = data['round'] as int? ?? 0;
         final gameLog = List<String>.from(data['gameLog'] ?? []);
 
-        // Trigger TTS & transisi saat fase berubah
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _handlePhaseChange(phase, round, gameLog);
 
-          // Narasi khusus game selesai (hanya sekali)
           if (phase == WPhase.finished && _lastPhase != WPhase.finished) {
             final winner = data['winner'] as String? ?? '';
             if (winner == 'village') {
@@ -759,7 +723,6 @@ class _WerewolfRoomScreenState extends State<WerewolfRoomScreen>
             }
           }
 
-          // Narasi game start
           if (phase == WPhase.night && round == 1 && _lastRound == 0) {
             WerewolfNarrator.onGameStart();
           }
@@ -786,7 +749,6 @@ class _WerewolfRoomScreenState extends State<WerewolfRoomScreen>
                   _buildLogStrip(gameLog),
               ]),
 
-              // ── Transisi overlay ──────────────────────────────
               if (_showTransition)
                 FadeTransition(
                   opacity: _transitionAnim,
@@ -835,7 +797,7 @@ class _WerewolfRoomScreenState extends State<WerewolfRoomScreen>
     );
   }
 
-  // ── AppBar ────────────────────────────────────────────────────────────────
+  // ── AppBar — FIXED: pakai Flexible agar tidak overflow ────────────────────
 
   AppBar _buildAppBar(String phase, int round, bool isHost,
       List<Map<String, dynamic>> players, Map<String, dynamic> data) {
@@ -846,13 +808,42 @@ class _WerewolfRoomScreenState extends State<WerewolfRoomScreen>
         icon: Icon(Icons.exit_to_app, color: Colors.deepPurple.shade300, size: 26),
         onPressed: _confirmLeave,
       ),
-      title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('ROOM: ${widget.roomCode}',
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900,
-                color: Colors.deepPurple.shade300, letterSpacing: 2)),
-        Text('${players.where((p) => p['isAlive'] == true).length} hidup  •  ${players.length} total',
-            style: TextStyle(fontSize: 10, color: AppColors.textDim)),
-      ]),
+      title: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Flexible(
+            child: Text(
+              'ROOM: ${widget.roomCode}',
+              style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.deepPurple.shade300,
+                  letterSpacing: 2),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: phase == 'playing'
+                  ? Colors.green.withValues(alpha: 0.15)
+                  : AppColors.border,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              phase == WPhase.waiting ? 'LOBBY' : phase == WPhase.finished ? 'SELESAI' : 'LIVE',
+              style: TextStyle(
+                  fontSize: 9,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.5,
+                  color: (phase != WPhase.waiting && phase != WPhase.finished)
+                      ? Colors.green.shade400
+                      : AppColors.textDim),
+            ),
+          ),
+        ],
+      ),
       actions: [
         if (isHost && phase == WPhase.nightResult)
           TextButton.icon(
@@ -893,9 +884,14 @@ class _WerewolfRoomScreenState extends State<WerewolfRoomScreen>
       child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
         Icon(cfg['icon'] as IconData, color: Colors.white70, size: 14),
         const SizedBox(width: 8),
-        Text(cfg['label'] as String,
+        Flexible(
+          child: Text(
+            cfg['label'] as String,
             style: const TextStyle(color: Colors.white,
-                fontWeight: FontWeight.w900, letterSpacing: 1, fontSize: 13)),
+                fontWeight: FontWeight.w900, letterSpacing: 1, fontSize: 13),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
       ]),
     );
   }
@@ -931,8 +927,6 @@ class _WerewolfRoomScreenState extends State<WerewolfRoomScreen>
           'colors': [AppColors.card, AppColors.card]};
     }
   }
-
-  // ── My Role Card ──────────────────────────────────────────────────────────
 
   Widget _buildMyRoleCard(String role, bool amAlive, Map<String, dynamic> data) {
     final seerResult = Map<String, dynamic>.from(data['seerResult'] as Map? ?? {});
@@ -1004,8 +998,6 @@ class _WerewolfRoomScreenState extends State<WerewolfRoomScreen>
     );
   }
 
-  // ── Phase Content ─────────────────────────────────────────────────────────
-
   Widget _buildPhaseContent(String phase, List<Map<String, dynamic>> players,
       Map<String, dynamic> me, String myRole, bool amAlive, bool isHost,
       Map<String, dynamic> data, List<String> gameLog) {
@@ -1021,8 +1013,6 @@ class _WerewolfRoomScreenState extends State<WerewolfRoomScreen>
       default:               return const SizedBox.shrink();
     }
   }
-
-  // ── Waiting ───────────────────────────────────────────────────────────────
 
   Widget _buildWaiting(List<Map<String, dynamic>> players, bool isHost) {
     return ListView(padding: const EdgeInsets.all(20), children: [
@@ -1114,8 +1104,6 @@ class _WerewolfRoomScreenState extends State<WerewolfRoomScreen>
     )).toList());
   }
 
-  // ── Night ─────────────────────────────────────────────────────────────────
-
   Widget _buildNight(List<Map<String, dynamic>> players,
       Map<String, dynamic> me, String myRole, bool amAlive,
       Map<String, dynamic> data) {
@@ -1145,7 +1133,6 @@ class _WerewolfRoomScreenState extends State<WerewolfRoomScreen>
           canSkip: false,
         );
         break;
-
       case WRole.seer:
         actionArea = _buildNightActionPanel(
           titleIcon: Icons.visibility,
@@ -1160,7 +1147,6 @@ class _WerewolfRoomScreenState extends State<WerewolfRoomScreen>
           canSkip: false,
         );
         break;
-
       case WRole.doctor:
         final allAlive = players.where((p) => p['isAlive'] == true).toList();
         actionArea = _buildNightActionPanel(
@@ -1176,7 +1162,6 @@ class _WerewolfRoomScreenState extends State<WerewolfRoomScreen>
           canSkip: false,
         );
         break;
-
       case WRole.bodyguard:
         final allAlive = players.where((p) => p['isAlive'] == true).toList();
         actionArea = _buildNightActionPanel(
@@ -1192,11 +1177,9 @@ class _WerewolfRoomScreenState extends State<WerewolfRoomScreen>
           canSkip: false,
         );
         break;
-
       case WRole.witch:
         actionArea = _buildWitchPanel(alivePlayers, me, data);
         break;
-
       case WRole.cupid:
         if (round == 1) {
           actionArea = _buildCupidPanel(alivePlayers);
@@ -1211,7 +1194,6 @@ class _WerewolfRoomScreenState extends State<WerewolfRoomScreen>
           });
         }
         break;
-
       case WRole.hunter:
       case WRole.mayor:
       case WRole.jester:
@@ -1349,7 +1331,6 @@ class _WerewolfRoomScreenState extends State<WerewolfRoomScreen>
         ]),
       ),
       const SizedBox(height: 16),
-
       if (!healUsed && targetPlayer != null && targetPlayer.isNotEmpty) ...[
         Row(children: [
           Icon(Icons.my_location, size: 13, color: AppColors.textDim),
@@ -1367,7 +1348,6 @@ class _WerewolfRoomScreenState extends State<WerewolfRoomScreen>
         ),
         const SizedBox(height: 12),
       ],
-
       if (!poisonUsed) ...[
         Row(children: [
           Icon(Icons.dangerous, size: 13, color: AppColors.textDim),
@@ -1397,7 +1377,6 @@ class _WerewolfRoomScreenState extends State<WerewolfRoomScreen>
         )),
         const SizedBox(height: 8),
       ],
-
       GestureDetector(
         onTap: () async {
           setState(() => _actionDone = true);
@@ -1554,8 +1533,6 @@ class _WerewolfRoomScreenState extends State<WerewolfRoomScreen>
     ),
   );
 
-  // ── Night Result ──────────────────────────────────────────────────────────
-
   Widget _buildNightResult(List<String> gameLog, bool isHost) {
     final nightLogs = gameLog.where((l) => l.startsWith('MALAM:') || l.startsWith('MULAI:')).toList();
     return Center(
@@ -1597,8 +1574,6 @@ class _WerewolfRoomScreenState extends State<WerewolfRoomScreen>
       ),
     );
   }
-
-  // ── Day ───────────────────────────────────────────────────────────────────
 
   Widget _buildDay(List<Map<String, dynamic>> players, Map<String, dynamic> me,
       bool isHost, Map<String, dynamic> data) {
@@ -1670,8 +1645,6 @@ class _WerewolfRoomScreenState extends State<WerewolfRoomScreen>
         _waitingHost(),
     ]);
   }
-
-  // ── Voting ────────────────────────────────────────────────────────────────
 
   Widget _buildVoting(List<Map<String, dynamic>> players, Map<String, dynamic> me,
       String myRole, bool amAlive, Map<String, dynamic> data) {
@@ -1747,8 +1720,6 @@ class _WerewolfRoomScreenState extends State<WerewolfRoomScreen>
     ]);
   }
 
-  // ── Vote Result ───────────────────────────────────────────────────────────
-
   Widget _buildVoteResult(List<String> gameLog, List<Map<String, dynamic>> players,
       bool isHost, Map<String, dynamic> data) {
     final voteLogs = gameLog.where((l) => l.startsWith('VOTING:')).toList();
@@ -1809,8 +1780,6 @@ class _WerewolfRoomScreenState extends State<WerewolfRoomScreen>
     );
   }
 
-  // ── Hunter Revenge ────────────────────────────────────────────────────────
-
   Widget _buildHunterRevenge(List<Map<String, dynamic>> players,
       Map<String, dynamic> me, String myRole, bool amAlive,
       Map<String, dynamic> data) {
@@ -1867,8 +1836,6 @@ class _WerewolfRoomScreenState extends State<WerewolfRoomScreen>
       ),
     );
   }
-
-  // ── Finished ──────────────────────────────────────────────────────────────
 
   Widget _buildFinished(Map<String, dynamic> data, List<Map<String, dynamic>> players, bool isHost) {
     final winner = data['winner'] as String? ?? '';
@@ -1966,8 +1933,6 @@ class _WerewolfRoomScreenState extends State<WerewolfRoomScreen>
     ]);
   }
 
-  // ── Log Strip ─────────────────────────────────────────────────────────────
-
   Widget _buildLogStrip(List<String> gameLog) {
     final latest = gameLog.last;
     return AnimatedSwitcher(
@@ -1989,8 +1954,6 @@ class _WerewolfRoomScreenState extends State<WerewolfRoomScreen>
       ),
     );
   }
-
-  // ── Helpers ───────────────────────────────────────────────────────────────
 
   Widget _logEntry(String text) => Container(
     margin: const EdgeInsets.only(bottom: 8),

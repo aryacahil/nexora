@@ -47,10 +47,10 @@ class NotificationService {
 
   // ── KIRIM NOTIFIKASI ──────────────────────────────────
 
-  Future<void> sendAnnouncementNotification(String title, String content) async {
-    final body = content.length > 100
-        ? '${content.substring(0, 100)}...'
-        : content;
+  Future<void> sendAnnouncementNotification(
+      String title, String content) async {
+    final body =
+        content.length > 100 ? '${content.substring(0, 100)}...' : content;
     await _sendToAllUsers(title: title, body: body);
   }
 
@@ -59,13 +59,93 @@ class NotificationService {
     String senderName,
     String message,
   ) async {
-    final body = message.length > 100
-        ? '${message.substring(0, 100)}...'
-        : message;
+    final body =
+        message.length > 100 ? '${message.substring(0, 100)}...' : message;
     await _sendToDiscussionSubscribers(
       title: '#$channelName',
       body: '$senderName: $body',
     );
+  }
+
+  /// Kirim notifikasi ke pemilik postingan saat ada komentar baru
+  Future<void> sendCommentNotification({
+    required String postOwnerUid,
+    required String commenterName,
+    required String commentText,
+    required String postCaption,
+  }) async {
+    if (postOwnerUid == uid) return;
+
+    try {
+      final ownerDoc =
+          await _db.collection('users').doc(postOwnerUid).get();
+      final ownerData = ownerDoc.data();
+      if (ownerData == null) return;
+
+      final settings =
+          ownerData['settings'] as Map<String, dynamic>? ?? {};
+      final notifComment = settings['notif_comment'] ?? true;
+      if (!notifComment) return;
+
+      final playerId = ownerData['oneSignalPlayerId'] as String? ?? '';
+      if (playerId.isEmpty) return;
+
+      final preview = postCaption.isNotEmpty
+          ? (postCaption.length > 30
+              ? '"${postCaption.substring(0, 30)}..."'
+              : '"$postCaption"')
+          : 'postinganmu';
+
+      final body = commentText.length > 80
+          ? '${commentText.substring(0, 80)}...'
+          : commentText;
+
+      await _sendToPlayerIds(
+        playerIds: [playerId],
+        title: '$commenterName mengomentari $preview',
+        body: body,
+      );
+    } catch (e) {
+      print('❌ Error kirim notif komentar: $e');
+    }
+  }
+
+  /// Kirim notifikasi ke pemilik postingan saat ada like baru
+  Future<void> sendLikeNotification({
+    required String postOwnerUid,
+    required String likerName,
+    required String postCaption,
+  }) async {
+    if (postOwnerUid == uid) return;
+
+    try {
+      final ownerDoc =
+          await _db.collection('users').doc(postOwnerUid).get();
+      final ownerData = ownerDoc.data();
+      if (ownerData == null) return;
+
+      final settings =
+          ownerData['settings'] as Map<String, dynamic>? ?? {};
+      final notifLike = settings['notif_like'] ?? true;
+      if (!notifLike) return;
+
+      final playerId = ownerData['oneSignalPlayerId'] as String? ?? '';
+      if (playerId.isEmpty) return;
+
+      final preview = postCaption.isNotEmpty
+          ? (postCaption.length > 30
+              ? '"${postCaption.substring(0, 30)}..."'
+              : '"$postCaption"')
+          : 'postinganmu';
+
+      await _sendToPlayerIds(
+        playerIds: [playerId],
+        title: '$likerName menyukai $preview',
+        body: '❤️ $likerName menyukai postinganmu',
+      );
+    } catch (e) {
+      print('❌ Error kirim notif like: $e');
+    }
   }
 
   // Kirim ke semua user — untuk pengumuman
@@ -74,8 +154,6 @@ class NotificationService {
     required String body,
   }) async {
     try {
-      print('🔔 Mengirim notifikasi pengumuman...');
-
       final safeBody = body.isEmpty ? 'Notifikasi baru' : body;
       final safeTitle = title.isEmpty ? 'Marga Void' : title;
 
@@ -95,9 +173,6 @@ class NotificationService {
         body: jsonEncode(payload),
       );
 
-      print('📡 Response status: ${response.statusCode}');
-      print('📡 Response body: ${response.body}');
-
       if (response.statusCode == 200 || response.statusCode == 201) {
         print('✅ Notifikasi pengumuman berhasil dikirim: $safeTitle');
       } else {
@@ -108,14 +183,12 @@ class NotificationService {
     }
   }
 
-  // Kirim ke subscriber diskusi — filter by tag notif_discussion=true
+  // Kirim ke subscriber diskusi
   Future<void> _sendToDiscussionSubscribers({
     required String title,
     required String body,
   }) async {
     try {
-      print('🔔 Mengirim notifikasi diskusi...');
-
       final safeBody = body.isEmpty ? 'Pesan baru' : body;
       final safeTitle = title.isEmpty ? 'Marga Void' : title;
 
@@ -142,9 +215,6 @@ class NotificationService {
         body: jsonEncode(payload),
       );
 
-      print('📡 Response status: ${response.statusCode}');
-      print('📡 Response body: ${response.body}');
-
       if (response.statusCode == 200 || response.statusCode == 201) {
         print('✅ Notifikasi diskusi berhasil dikirim: $safeTitle');
       } else {
@@ -155,30 +225,77 @@ class NotificationService {
     }
   }
 
+  // Kirim langsung ke player ID tertentu (untuk komentar & like)
+  Future<void> _sendToPlayerIds({
+    required List<String> playerIds,
+    required String title,
+    required String body,
+  }) async {
+    try {
+      final payload = {
+        'app_id': _oneSignalAppId,
+        'headings': {'en': title},
+        'contents': {'en': body},
+        'include_player_ids': playerIds,
+      };
+
+      final response = await http.post(
+        Uri.parse('https://api.onesignal.com/notifications'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $_oneSignalRestApiKey',
+        },
+        body: jsonEncode(payload),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        print('✅ Notifikasi terkirim: $title');
+      } else {
+        print('❌ Gagal kirim notifikasi: ${response.body}');
+      }
+    } catch (e) {
+      print('❌ Error _sendToPlayerIds: $e');
+    }
+  }
+
   // ── TAG UNTUK SEGMENTASI ──────────────────────────────
 
   Future<void> subscribeAnnouncements() async {
     OneSignal.User.addTagWithKey('notif_announcements', 'true');
     await _saveNotifSetting('notif_announcements', true);
-    print('✅ Subscribe announcements');
   }
 
   Future<void> unsubscribeAnnouncements() async {
     OneSignal.User.addTagWithKey('notif_announcements', 'false');
     await _saveNotifSetting('notif_announcements', false);
-    print('✅ Unsubscribe announcements');
   }
 
   Future<void> subscribeDiscussion() async {
     OneSignal.User.addTagWithKey('notif_discussion', 'true');
     await _saveNotifSetting('notif_discussion', true);
-    print('✅ Subscribe discussion');
   }
 
   Future<void> unsubscribeDiscussion() async {
     OneSignal.User.addTagWithKey('notif_discussion', 'false');
     await _saveNotifSetting('notif_discussion', false);
-    print('✅ Unsubscribe discussion');
+  }
+
+  // notif_comment & notif_like disimpan di Firestore saja,
+  // tidak butuh OneSignal tag karena dikirim langsung ke player ID
+  Future<void> subscribeComment() async {
+    await _saveNotifSetting('notif_comment', true);
+  }
+
+  Future<void> unsubscribeComment() async {
+    await _saveNotifSetting('notif_comment', false);
+  }
+
+  Future<void> subscribeLike() async {
+    await _saveNotifSetting('notif_like', true);
+  }
+
+  Future<void> unsubscribeLike() async {
+    await _saveNotifSetting('notif_like', false);
   }
 
   // ── SETTINGS ──────────────────────────────────────────
@@ -203,11 +320,15 @@ class NotificationService {
       return {
         'notif_announcements': settings['notif_announcements'] ?? true,
         'notif_discussion': settings['notif_discussion'] ?? true,
+        'notif_comment': settings['notif_comment'] ?? true,
+        'notif_like': settings['notif_like'] ?? true,
       };
     } catch (e) {
       return {
         'notif_announcements': true,
         'notif_discussion': true,
+        'notif_comment': true,
+        'notif_like': true,
       };
     }
   }
